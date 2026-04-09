@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "461612285311",
+    "project_id": "medshelf-sunil",
+    "storage_bucket": "medshelf-sunil.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:461612285311:android:e12e2dafbe9aac20866e4a",
+        "android_client_info": {
+          "package_name": "com.medshelf.medshelf"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "461612285311-e80s4rcsdjm9c1j21vipnnafhkgag3hg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDalKpYZiwAiUOgC5802oE0MwrEkUFlThw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "461612285311-e80s4rcsdjm9c1j21vipnnafhkgag3hg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
