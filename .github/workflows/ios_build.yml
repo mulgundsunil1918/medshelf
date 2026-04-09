@@ -24,22 +24,22 @@ jobs:
           unzip -q flutter.zip -d $HOME
           echo "$HOME/flutter/bin" >> $GITHUB_PATH
 
-      - name: Flutter version check
-        run: flutter --version
-
       - name: Install dependencies
         run: flutter pub get
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: ios/Pods
+          key: pods-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: pods-
 
       - name: Install CocoaPods dependencies
         run: |
           cd ios
-          pod install --repo-update
+          pod install
         env:
           LANG: en_US.UTF-8
-
-      - name: Analyze code
-        run: flutter analyze --no-fatal-infos
-        continue-on-error: true
 
       - name: Build iOS (no code signing)
         run: flutter build ios --no-codesign --debug
