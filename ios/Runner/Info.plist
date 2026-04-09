@@ -26,6 +26,18 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>MedShelf needs access to your photo library to import medical images and videos.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>MedShelf needs permission to save files to your photo library.</string>
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>MedShelf needs access to your documents to import and manage medical study files.</string>
+	<key>NSFileProviderDomainUsageDescription</key>
+	<string>MedShelf uses file storage to organize your medical study materials.</string>
+	<key>UIFileSharingEnabled</key>
+	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
