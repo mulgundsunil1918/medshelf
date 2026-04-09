@@ -10,15 +10,18 @@ on:
 jobs:
   build-ios:
     name: Build iOS (No Code Signing)
-    runs-on: macos-latest
+    runs-on: macos-13
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Flutter (latest stable)
+      - name: Install Flutter 3.41.6
         run: |
-          git clone https://github.com/flutter/flutter.git --depth 1 -b stable $HOME/flutter
+          FLUTTER_VERSION="3.41.6"
+          curl -fsSL -o flutter.zip \
+            "https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/flutter_macos_${FLUTTER_VERSION}-stable.zip"
+          unzip -q flutter.zip -d $HOME
           echo "$HOME/flutter/bin" >> $GITHUB_PATH
 
       - name: Flutter version check
