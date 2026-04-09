@@ -5,7 +5,7 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
-  workflow_dispatch: # allows manual trigger from GitHub UI
+  workflow_dispatch:
 
 jobs:
   build-ios:
@@ -16,11 +16,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-          cache: true
+      - name: Install Flutter (latest stable)
+        run: |
+          git clone https://github.com/flutter/flutter.git --depth 1 -b stable $HOME/flutter
+          echo "$HOME/flutter/bin" >> $GITHUB_PATH
+
+      - name: Flutter version check
+        run: flutter --version
 
       - name: Install dependencies
         run: flutter pub get
@@ -42,4 +44,4 @@ jobs:
           LANG: en_US.UTF-8
 
       - name: Build succeeded
-        run: echo "✅ iOS build completed successfully!"
+        run: echo "iOS build completed successfully!"
