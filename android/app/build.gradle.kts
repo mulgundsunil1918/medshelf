@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     // START: FlutterFire Configuration
@@ -8,8 +11,14 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+val keystorePropertiesFile = rootProject.file("key.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
+
 android {
-    namespace = "com.medshelf.medshelf"
+    namespace = "com.medshelf.app"
     compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
@@ -23,26 +32,27 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.medshelf.medshelf"
+        applicationId = "com.medshelf.app"
         minSdk = flutter.minSdkVersion
         targetSdk = 34
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        versionCode = 1
+        versionName = "1.0.0"
+    }
+
+    signingConfigs {
+        create("release") {
+            keyAlias = keystoreProperties["keyAlias"] as String?
+            keyPassword = keystoreProperties["keyPassword"] as String?
+            storeFile = keystoreProperties["storeFile"]?.let { file(it) }
+            storePassword = keystoreProperties["storePassword"] as String?
+        }
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("debug")
-
-            // ── R8 code shrinking ─────────────────────────────────────────
-            // Removes unused Java/Kotlin code and obfuscates class names.
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
-
-            // ── Resource shrinking ────────────────────────────────────────
-            // Strips unused drawables, strings, layouts from the APK.
-            // Only works when isMinifyEnabled = true.
             isShrinkResources = true
-
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",

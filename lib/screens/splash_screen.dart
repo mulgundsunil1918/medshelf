@@ -119,8 +119,6 @@ class _SplashScreenState extends State<SplashScreen>
 
     if (!tutorial) {
       _go(const TutorialScreen());
-    } else if (!auth) {
-      _go(const AuthScreen());
     } else if (!onboarding) {
       _go(const SpecialtyOnboardingScreen());
     } else {
