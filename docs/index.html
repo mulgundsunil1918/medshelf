@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MedShelf — Your Medical Library</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal:   #006B74;
+      --teal2:  #008C96;
+      --coral:  #E8835A;
+      --coral2: #F0A080;
+      --dark:   #0D1B1E;
+      --gray:   #4A6670;
+      --light:  #F0F7F8;
+      --white:  #FFFFFF;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      color: var(--dark);
+      background: var(--white);
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 48px;
+      background: rgba(0,107,116,0.97);
+      backdrop-filter: blur(10px);
+    }
+    .nav-logo { display: flex; align-items: baseline; gap: 2px; }
+    .nav-logo span:first-child { font-size: 24px; font-weight: 900; color: var(--white); }
+    .nav-logo span:last-child  { font-size: 24px; font-weight: 900; color: var(--coral); }
+    .nav-links { display: flex; gap: 32px; }
+    .nav-links a {
+      color: rgba(255,255,255,0.85); text-decoration: none;
+      font-weight: 600; font-size: 15px; transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--coral); }
+    .nav-cta {
+      background: var(--coral); color: var(--white);
+      border: none; border-radius: 50px; padding: 10px 24px;
+      font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 15px;
+      cursor: pointer; text-decoration: none; transition: background .2s, transform .15s;
+    }
+    .nav-cta:hover { background: var(--coral2); transform: translateY(-1px); }
+
+    /* ── HERO ── */
+    #hero {
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--teal) 0%, #004F58 60%, #003840 100%);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; padding: 120px 24px 80px;
+      position: relative; overflow: hidden;
+    }
+    #hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 70% 30%, rgba(232,131,90,0.15) 0%, transparent 60%);
+    }
+    .hero-badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: rgba(255,255,255,0.9);
+      border-radius: 50px; padding: 6px 20px; font-size: 13px; font-weight: 700;
+      letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 28px;
+    }
+    .hero-title {
+      font-size: clamp(40px, 7vw, 80px);
+      font-weight: 900; color: var(--white); line-height: 1.1;
+      margin-bottom: 8px;
+    }
+    .hero-title .coral { color: var(--coral); }
+    .hero-subtitle {
+      font-size: clamp(16px, 2.5vw, 22px);
+      color: rgba(255,255,255,0.65);
+      letter-spacing: 3px; text-transform: uppercase;
+      font-weight: 400; margin-bottom: 32px;
+    }
+    .hero-desc {
+      max-width: 620px;
+      font-size: clamp(16px, 2vw, 19px);
+      color: rgba(255,255,255,0.8);
+      line-height: 1.7; margin-bottom: 48px;
+    }
+    .hero-btns { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+    .btn-primary {
+      background: var(--coral); color: var(--white);
+      border: none; border-radius: 50px; padding: 16px 36px;
+      font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 17px;
+      cursor: pointer; text-decoration: none; transition: all .2s;
+      box-shadow: 0 8px 32px rgba(232,131,90,0.4);
+    }
+    .btn-primary:hover { background: var(--coral2); transform: translateY(-2px); box-shadow: 0 12px 40px rgba(232,131,90,0.5); }
+    .btn-outline {
+      background: transparent; color: var(--white);
+      border: 2px solid rgba(255,255,255,0.4); border-radius: 50px; padding: 14px 36px;
+      font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 17px;
+      cursor: pointer; text-decoration: none; transition: all .2s;
+    }
+    .btn-outline:hover { border-color: var(--white); background: rgba(255,255,255,0.1); }
+    .hero-scroll {
+      position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      color: rgba(255,255,255,0.4); font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+      animation: bounce 2s infinite;
+    }
+    .hero-scroll svg { width: 20px; height: 20px; fill: rgba(255,255,255,0.4); }
+    @keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(8px)} }
+
+    /* ── SECTION BASE ── */
+    section { padding: 96px 24px; }
+    .container { max-width: 1100px; margin: 0 auto; }
+    .section-label {
+      display: inline-block;
+      background: rgba(0,107,116,0.08);
+      color: var(--teal); border-radius: 50px;
+      padding: 6px 18px; font-size: 12px; font-weight: 800;
+      letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px;
+    }
+    .section-title {
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 900; color: var(--dark); line-height: 1.2; margin-bottom: 16px;
+    }
+    .section-sub {
+      font-size: 18px; color: var(--gray); line-height: 1.7; max-width: 600px;
+    }
+
+    /* ── PROBLEM ── */
+    #problem { background: #FFF8F5; }
+    .problem-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px; margin-top: 56px;
+    }
+    .problem-card {
+      background: var(--white); border-radius: 20px; padding: 32px;
+      border-left: 4px solid var(--coral);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+      transition: transform .2s;
+    }
+    .problem-card:hover { transform: translateY(-4px); }
+    .problem-icon { font-size: 36px; margin-bottom: 16px; }
+    .problem-card h3 { font-size: 18px; font-weight: 800; color: var(--dark); margin-bottom: 10px; }
+    .problem-card p  { font-size: 15px; color: var(--gray); line-height: 1.7; }
+
+    /* ── SOLUTION ── */
+    #solution { background: var(--white); }
+    .solution-inner {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center;
+      margin-top: 56px;
+    }
+    .solution-phone {
+      background: linear-gradient(135deg, var(--teal), #004F58);
+      border-radius: 36px; padding: 40px 32px;
+      box-shadow: 0 32px 80px rgba(0,107,116,0.3);
+      display: flex; flex-direction: column; align-items: center; gap: 16px;
+    }
+    .phone-logo { display: flex; align-items: baseline; gap: 2px; }
+    .phone-logo span:first-child { font-size: 48px; font-weight: 900; color: var(--white); }
+    .phone-logo span:last-child  { font-size: 48px; font-weight: 900; color: var(--coral); }
+    .phone-tagline { color: rgba(255,255,255,0.65); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; }
+    .phone-divider { width: 100%; height: 1px; background: rgba(255,255,255,0.15); }
+    .phone-stat {
+      display: flex; justify-content: space-between; width: 100%; gap: 12px;
+    }
+    .stat-box {
+      flex: 1; background: rgba(255,255,255,0.1); border-radius: 14px; padding: 16px;
+      text-align: center;
+    }
+    .stat-num { font-size: 24px; font-weight: 900; color: var(--coral); }
+    .stat-lbl { font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+    .solution-points { display: flex; flex-direction: column; gap: 24px; }
+    .solution-point { display: flex; gap: 18px; align-items: flex-start; }
+    .point-icon {
+      width: 48px; height: 48px; border-radius: 14px;
+      background: linear-gradient(135deg, var(--teal), var(--teal2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; flex-shrink: 0;
+      box-shadow: 0 8px 24px rgba(0,107,116,0.25);
+    }
+    .point-text h4 { font-size: 17px; font-weight: 800; color: var(--dark); margin-bottom: 6px; }
+    .point-text p  { font-size: 15px; color: var(--gray); line-height: 1.6; }
+
+    /* ── FEATURES ── */
+    #features { background: var(--light); }
+    .features-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px; margin-top: 56px;
+    }
+    .feature-card {
+      background: var(--white); border-radius: 24px; padding: 36px 32px;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.06);
+      transition: transform .2s, box-shadow .2s;
+      position: relative; overflow: hidden;
+    }
+    .feature-card::after {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--teal), var(--coral));
+    }
+    .feature-card:hover { transform: translateY(-6px); box-shadow: 0 16px 48px rgba(0,0,0,0.1); }
+    .feature-emoji { font-size: 40px; margin-bottom: 20px; display: block; }
+    .feature-card h3 { font-size: 20px; font-weight: 800; color: var(--dark); margin-bottom: 12px; }
+    .feature-card p  { font-size: 15px; color: var(--gray); line-height: 1.7; }
+
+    /* ── HOW IT WORKS ── */
+    #how { background: var(--white); }
+    .steps { display: flex; flex-direction: column; gap: 0; margin-top: 56px; position: relative; }
+    .steps::before {
+      content: ''; position: absolute; left: 31px; top: 0; bottom: 0; width: 2px;
+      background: linear-gradient(to bottom, var(--teal), var(--coral));
+    }
+    .step { display: flex; gap: 32px; align-items: flex-start; padding-bottom: 48px; position: relative; }
+    .step:last-child { padding-bottom: 0; }
+    .step-num {
+      width: 64px; height: 64px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--teal), var(--teal2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; font-weight: 900; color: var(--white);
+      box-shadow: 0 8px 24px rgba(0,107,116,0.3);
+      z-index: 1;
+    }
+    .step-content { padding-top: 12px; }
+    .step-content h3 { font-size: 20px; font-weight: 800; color: var(--dark); margin-bottom: 8px; }
+    .step-content p  { font-size: 15px; color: var(--gray); line-height: 1.7; max-width: 560px; }
+    .step-tag {
+      display: inline-block; margin-top: 12px;
+      background: rgba(0,107,116,0.08); color: var(--teal);
+      border-radius: 50px; padding: 4px 14px; font-size: 12px; font-weight: 700;
+    }
+
+    /* ── PRIVACY ── */
+    #privacy {
+      background: linear-gradient(135deg, var(--teal), #004F58);
+      text-align: center;
+    }
+    #privacy .section-label { background: rgba(255,255,255,0.15); color: var(--white); }
+    #privacy .section-title { color: var(--white); }
+    #privacy .section-sub   { color: rgba(255,255,255,0.75); margin: 0 auto 48px; }
+    .privacy-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+    .privacy-item {
+      background: rgba(255,255,255,0.1); border-radius: 20px; padding: 28px 20px;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    .privacy-item .pi-icon { font-size: 32px; margin-bottom: 12px; }
+    .privacy-item h4 { font-size: 15px; font-weight: 800; color: var(--white); margin-bottom: 8px; }
+    .privacy-item p  { font-size: 13px; color: rgba(255,255,255,0.65); line-height: 1.6; }
+
+    /* ── CTA ── */
+    #cta { background: #FFF8F5; text-align: center; }
+    #cta .section-title { margin-bottom: 16px; }
+    #cta .section-sub   { margin: 0 auto 40px; }
+    .cta-store-btn {
+      display: inline-flex; align-items: center; gap: 12px;
+      background: var(--dark); color: var(--white);
+      border-radius: 16px; padding: 14px 28px; text-decoration: none;
+      transition: transform .2s, box-shadow .2s;
+      box-shadow: 0 8px 32px rgba(13,27,30,0.25);
+    }
+    .cta-store-btn:hover { transform: translateY(-3px); box-shadow: 0 16px 40px rgba(13,27,30,0.3); }
+    .cta-store-btn svg { width: 28px; height: 28px; fill: var(--white); }
+    .cta-store-btn .store-text .store-sub { font-size: 11px; opacity: .7; letter-spacing: 1px; }
+    .cta-store-btn .store-text .store-name { font-size: 18px; font-weight: 900; }
+    .cta-coming { margin-top: 16px; font-size: 13px; color: var(--gray); }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--dark); color: rgba(255,255,255,0.5);
+      padding: 40px 48px; display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 16px;
+    }
+    .footer-logo { display: flex; align-items: baseline; gap: 2px; }
+    .footer-logo span:first-child { font-size: 20px; font-weight: 900; color: var(--white); }
+    .footer-logo span:last-child  { font-size: 20px; font-weight: 900; color: var(--coral); }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a { color: rgba(255,255,255,0.5); text-decoration: none; font-size: 14px; transition: color .2s; }
+    .footer-links a:hover { color: var(--coral); }
+    footer p { font-size: 13px; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      nav { padding: 16px 20px; }
+      .nav-links { display: none; }
+      .solution-inner { grid-template-columns: 1fr; }
+      .steps::before { left: 28px; }
+      footer { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo"><span>Med</span><span>Shelf</span></div>
+  <div class="nav-links">
+    <a href="#problem">Problem</a>
+    <a href="#features">Features</a>
+    <a href="#how">How it Works</a>
+    <a href="#privacy">Privacy</a>
+  </div>
+  <a href="#cta" class="nav-cta">Get the App</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-badge">For Medical Students & Professionals</div>
+  <h1 class="hero-title"><span class="coral">Med</span>Shelf</h1>
+  <p class="hero-subtitle">Your Medical Library</p>
+  <p class="hero-desc">
+    Stop drowning in scattered PDFs, WhatsApp notes, and Telegram files.
+    MedShelf organizes your entire medical study library — by specialty,
+    by topic, in seconds.
+  </p>
+  <div class="hero-btns">
+    <a href="#cta" class="btn-primary">📱 Get MedShelf Free</a>
+    <a href="#how" class="btn-outline">See How It Works</a>
+  </div>
+  <div class="hero-scroll">
+    <svg viewBox="0 0 24 24"><path d="M12 16l-6-6h12z"/></svg>
+    scroll
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<section id="problem">
+  <div class="container">
+    <span class="section-label">The Problem</span>
+    <h2 class="section-title">Medical school creates chaos.<br>Your files are everywhere.</h2>
+    <p class="section-sub">Every medical student knows the pain. Study material is scattered across dozens of apps, folders, and chats — and finding anything is a nightmare.</p>
+
+    <div class="problem-grid">
+      <div class="problem-card">
+        <div class="problem-icon">📱</div>
+        <h3>Files in WhatsApp & Telegram</h3>
+        <p>Professors share slides over WhatsApp. Study groups send PDFs on Telegram. Your study material is buried in chat history, impossible to find when you need it.</p>
+      </div>
+      <div class="problem-card">
+        <div class="problem-icon">🗂️</div>
+        <h3>No Organisation System</h3>
+        <p>Downloads folder has 800 files. "Anatomy_final_FINAL_v3.pdf" is somewhere. You spend more time searching than studying.</p>
+      </div>
+      <div class="problem-card">
+        <div class="problem-icon">📝</div>
+        <h3>Notes Scattered Everywhere</h3>
+        <p>Quick notes on phone notes app, WhatsApp self-chat, sticky notes, random notebooks — none of it connected to the topic you're studying.</p>
+      </div>
+      <div class="problem-card">
+        <div class="problem-icon">⏰</div>
+        <h3>Exam Season Panic</h3>
+        <p>3 days before exams, you realize half your study material is missing, in the wrong place, or buried under hundreds of unrelated files.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SOLUTION -->
+<section id="solution">
+  <div class="container">
+    <span class="section-label">The Solution</span>
+    <h2 class="section-title">One app. Every medical file.<br>Perfectly organised.</h2>
+    <p class="section-sub">MedShelf is built specifically for medical students — it understands how you study, and organises everything the way your brain does.</p>
+
+    <div class="solution-inner">
+      <div class="solution-phone">
+        <div class="phone-logo"><span>Med</span><span>Shelf</span></div>
+        <p class="phone-tagline">Your Medical Library</p>
+        <div class="phone-divider"></div>
+        <div class="phone-stat">
+          <div class="stat-box">
+            <div class="stat-num">30+</div>
+            <div class="stat-lbl">Specialties</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-num">∞</div>
+            <div class="stat-lbl">Files</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-num">0</div>
+            <div class="stat-lbl">Chaos</div>
+          </div>
+        </div>
+        <div class="phone-divider"></div>
+        <div style="width:100%">
+          <div style="background:rgba(255,255,255,0.08);border-radius:12px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px">
+            <span style="font-size:20px">🫀</span>
+            <div>
+              <div style="color:white;font-weight:700;font-size:14px">Cardiology</div>
+              <div style="color:rgba(255,255,255,0.5);font-size:12px">12 files · 3 notes</div>
+            </div>
+          </div>
+          <div style="background:rgba(232,131,90,0.2);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px">
+            <span style="font-size:20px">🧠</span>
+            <div>
+              <div style="color:white;font-weight:700;font-size:14px">Neurology</div>
+              <div style="color:rgba(255,255,255,0.5);font-size:12px">8 files · 5 notes</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="solution-points">
+        <div class="solution-point">
+          <div class="point-icon">📂</div>
+          <div class="point-text">
+            <h4>Organized by Specialty & Topic</h4>
+            <p>Browse files the way your curriculum is structured — Anatomy, Pharmacology, Cardiology and 30+ more specialties with nested topics.</p>
+          </div>
+        </div>
+        <div class="solution-point">
+          <div class="point-icon">🔍</div>
+          <div class="point-text">
+            <h4>Finds Files Anywhere on Your Device</h4>
+            <p>MedShelf scans WhatsApp, Telegram, Downloads, DCIM and more — bringing all your scattered medical files into one place with one tap.</p>
+          </div>
+        </div>
+        <div class="solution-point">
+          <div class="point-icon">📝</div>
+          <div class="point-text">
+            <h4>Quick Notes Attached to Topics</h4>
+            <p>Capture a thought instantly. Notes live inside their topic — so your Pharmacology note is always next to your Pharmacology files.</p>
+          </div>
+        </div>
+        <div class="solution-point">
+          <div class="point-icon">📦</div>
+          <div class="point-text">
+            <h4>Batch Import Entire Folders</h4>
+            <p>Import 50 files in one go. Select a folder, pick a destination specialty, done. MedShelf handles the rest.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="container">
+    <span class="section-label">Features</span>
+    <h2 class="section-title">Everything a medical student needs.</h2>
+    <p class="section-sub">Built from scratch for how medical students actually work — not a generic file manager with a coat of paint.</p>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <span class="feature-emoji">📄</span>
+        <h3>PDF Viewer with Thumbnails</h3>
+        <p>Preview PDF content without opening it. First-page thumbnails are rendered instantly so you know exactly what's inside before you tap.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-emoji">🔍</span>
+        <h3>Device File Search</h3>
+        <p>Scan 11 directories including WhatsApp, Telegram, Downloads, DCIM and more. Filter by file type. Import directly to any topic.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-emoji">📦</span>
+        <h3>Batch Import</h3>
+        <p>Select multiple files or an entire folder at once. Assign them all to a specialty in one step. Progress bar so you know it's working.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-emoji">⚡</span>
+        <h3>Quick Note</h3>
+        <p>One tap from the home screen to capture a note. No navigation needed. Notes are saved instantly and tagged to a topic.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-emoji">🏥</span>
+        <h3>30+ Medical Specialties</h3>
+        <p>Pre-loaded with Anatomy, Physiology, Pharmacology, Pathology, Cardiology, Neurology and 25+ more. Add custom topics too.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-emoji">🌙</span>
+        <h3>Dark Mode</h3>
+        <p>Easy on the eyes during late night study sessions. Toggle between light and dark from the home screen instantly.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-emoji">🎵</span>
+        <h3>Audio & Video Support</h3>
+        <p>Store lecture recordings and video files alongside your PDFs and notes. All your study material in one place.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-emoji">🔒</span>
+        <h3>Files Stay on Your Device</h3>
+        <p>Your files are stored locally in a MedShelf folder on your device. No forced cloud upload. You're in control.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-emoji">📤</span>
+        <h3>Easy Sharing</h3>
+        <p>Share any file directly from MedShelf to WhatsApp, email, or any other app. One tap, no digging through folders.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="container">
+    <span class="section-label">How It Works</span>
+    <h2 class="section-title">Up and running in under 5 minutes.</h2>
+    <p class="section-sub">No complex setup. No account required to get started. Open the app and your library is ready.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h3>Download & Open MedShelf</h3>
+          <p>Install from the Play Store. On first launch, a quick tutorial shows you the main features — takes about 30 seconds. You pick your specialty focus (MBBS, MD, Nursing etc.) so MedShelf shows the most relevant topics first.</p>
+          <span class="step-tag">Takes 30 seconds</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h3>Import Your Existing Files</h3>
+          <p>Tap <strong>Search Device</strong> on the home screen. MedShelf scans your WhatsApp, Telegram, Downloads and all other common folders. You'll see every medical-looking file on your device. Tick the ones you want, pick a specialty, tap Import.</p>
+          <span class="step-tag">Finds files you forgot you had</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h3>Organise by Specialty & Topic</h3>
+          <p>Files land in the correct specialty folder automatically. Tap <strong>Browse by Specialty</strong> or <strong>Browse by Topic</strong> on the home screen to navigate your library. Each specialty has sub-topics — e.g. Cardiology → ECG, Heart Failure, Valvular Disease.</p>
+          <span class="step-tag">Structure mirrors your curriculum</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <h3>Add Quick Notes</h3>
+          <p>See something important during a lecture? Tap the <strong>Quick Note</strong> box on the home screen. Type your note, pick the topic, save. Your note appears instantly in that topic's file list alongside your PDFs.</p>
+          <span class="step-tag">Zero friction note capture</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <h3>Study Without Searching</h3>
+          <p>Open any specialty, see all your files and notes together with thumbnail previews. Tap a PDF to read it, tap a note to edit it. Everything is exactly where you expect it to be — organised the way your brain works.</p>
+          <span class="step-tag">Your library, your way</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRIVACY -->
+<section id="privacy">
+  <div class="container" style="text-align:center">
+    <span class="section-label">Privacy First</span>
+    <h2 class="section-title">Your data is yours. Always.</h2>
+    <p class="section-sub">MedShelf is built on a simple principle: your study material belongs to you, not us.</p>
+
+    <div class="privacy-grid" style="margin-top:48px">
+      <div class="privacy-item">
+        <div class="pi-icon">📱</div>
+        <h4>Local Storage</h4>
+        <p>Your files are stored in a MedShelf folder on your own device. No forced upload to any server.</p>
+      </div>
+      <div class="privacy-item">
+        <div class="pi-icon">🚫</div>
+        <h4>No Data Selling</h4>
+        <p>We do not sell, share, or monetize your personal data or study materials. Ever.</p>
+      </div>
+      <div class="privacy-item">
+        <div class="pi-icon">🔐</div>
+        <h4>Encrypted Sync</h4>
+        <p>Notes that sync via Firebase are encrypted in transit. Your study data is private.</p>
+      </div>
+      <div class="privacy-item">
+        <div class="pi-icon">🗑️</div>
+        <h4>Delete Anytime</h4>
+        <p>Request full deletion of your account and all associated data at any time by emailing us.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="container">
+    <span class="section-label">Get Started</span>
+    <h2 class="section-title">Your organised medical library<br>is one download away.</h2>
+    <p class="section-sub" style="margin:0 auto 40px">Free to download. No subscription. No ads. Just a clean, fast medical study organizer built by a medical student, for medical students.</p>
+
+    <a href="https://play.google.com/store/apps/details?id=com.medshelf.medshelf" class="cta-store-btn">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3.18 23.76c.3.17.64.24.99.2l12.87-11.95L13.27 8.2zm17.29-10.7L17.6 11.5l-3.47 3.22 3.47 3.22 2.9-1.58a1.72 1.72 0 0 0 0-3.3zM3.03.28A1.72 1.72 0 0 0 2 1.83v20.34c0 .62.32 1.16.82 1.47l.15.09L16.18 12 3.18.28z"/>
+      </svg>
+      <div class="store-text">
+        <div class="store-sub">GET IT ON</div>
+        <div class="store-name">Google Play</div>
+      </div>
+    </a>
+    <p class="cta-coming">Available now on Android · iOS coming soon</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo"><span>Med</span><span>Shelf</span></div>
+  <div class="footer-links">
+    <a href="#privacy">Privacy Policy</a>
+    <a href="mailto:mulgundsunil@gmail.com">Contact</a>
+    <a href="https://github.com/mulgundsunil1918/medshelf">GitHub</a>
+  </div>
+  <p>© 2026 MedShelf. Built for medical students.</p>
+</footer>
+
+</body>
+</html>
