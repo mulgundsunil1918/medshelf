@@ -18,7 +18,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.medshelf.app"
+    namespace = "com.medshelf.medshelf"
     compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
@@ -32,10 +32,10 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.medshelf.app"
+        applicationId = "com.medshelf.medshelf"
         minSdk = flutter.minSdkVersion
-        targetSdk = 34
-        versionCode = 1
+        targetSdk = 35
+        versionCode = 4
         versionName = "1.0.0"
     }
 

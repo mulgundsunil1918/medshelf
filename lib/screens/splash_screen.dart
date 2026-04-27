@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../services/onboarding_service.dart';
-import 'auth_screen.dart';
 import 'main_shell.dart';
 import 'specialty_onboarding_screen.dart';
 import 'tutorial_screen.dart';
@@ -106,14 +105,7 @@ class _SplashScreenState extends State<SplashScreen>
     final svc = OnboardingService.instance;
 
     final tutorial   = await svc.hasSeenTutorial();
-    final auth       = await svc.hasSeenAuth();
     final onboarding = await svc.hasCompletedOnboarding();
-
-    debugPrint('=== SPLASH FLAGS ===');
-    debugPrint('tutorial=$tutorial');
-    debugPrint('auth=$auth');
-    debugPrint('onboarding=$onboarding');
-    debugPrint('====================');
 
     if (!mounted) return;
 

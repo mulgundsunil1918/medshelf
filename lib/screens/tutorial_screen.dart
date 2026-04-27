@@ -3,7 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../services/onboarding_service.dart';
-import 'auth_screen.dart';
+import 'specialty_onboarding_screen.dart';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -42,7 +42,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 400),
         pageBuilder: (context, animation, secondaryAnimation) =>
-            const AuthScreen(),
+            const SpecialtyOnboardingScreen(),
         transitionsBuilder: (context, anim, secondaryAnimation, child) =>
             FadeTransition(opacity: anim, child: child),
       ),
@@ -62,7 +62,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 400),
         pageBuilder: (context, animation, secondaryAnimation) =>
-            const AuthScreen(),
+            const SpecialtyOnboardingScreen(),
         transitionsBuilder: (context, anim, secondaryAnimation, child) =>
             FadeTransition(opacity: anim, child: child),
       ),

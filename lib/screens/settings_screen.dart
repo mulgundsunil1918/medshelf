@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart' show Share;
@@ -10,7 +9,6 @@ import '../utils/app_colors.dart';
 import '../utils/app_theme.dart';
 import '../utils/constants.dart';
 import 'about_screen.dart';
-import 'auth_screen.dart';
 import 'manage_specialties_screen.dart';
 import 'tutorial_screen.dart';
 
@@ -293,88 +291,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 MaterialPageRoute(
                     builder: (_) => const AboutScreen()),
               ),
-            ),
-          ),
-
-          // ── ACCOUNT ────────────────────────────────────────────────────────
-          _SectionHeader(label: 'ACCOUNT', tt: tt, cs: cs),
-          Card(
-            margin: const EdgeInsets.only(bottom: 16),
-            child: StreamBuilder<User?>(
-              stream: FirebaseAuth.instance.authStateChanges(),
-              builder: (context, snap) {
-                final user = snap.data;
-                if (user == null) {
-                  return _SettingsTile(
-                    icon: Icons.login_rounded,
-                    title: 'Sign In / Sign Up',
-                    subtitle: 'Sync your library across devices',
-                    cs: cs,
-                    tt: tt,
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const AuthScreen()),
-                    ),
-                  );
-                }
-                return Column(
-                  children: [
-                    ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: cs.primaryContainer,
-                        child: Text(
-                          (user.displayName?.isNotEmpty == true
-                                  ? user.displayName![0]
-                                  : user.email?[0] ?? '?')
-                              .toUpperCase(),
-                          style: TextStyle(
-                              color: cs.onPrimaryContainer,
-                              fontWeight: FontWeight.w700),
-                        ),
-                      ),
-                      title: Text(
-                        user.displayName ?? 'User',
-                        style: tt.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w700),
-                      ),
-                      subtitle: Text(user.email ?? ''),
-                    ),
-                    const Divider(height: 1, indent: 72),
-                    ListTile(
-                      leading: _LeadingBox(
-                          icon: Icons.logout_rounded, cs: cs),
-                      title: Text('Sign Out',
-                          style: tt.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: cs.error)),
-                      onTap: () async {
-                        final ok = await showDialog<bool>(
-                          context: context,
-                          builder: (ctx) => AlertDialog(
-                            title: const Text('Sign Out'),
-                            content:
-                                const Text('Sign out of your account?'),
-                            actions: [
-                              TextButton(
-                                onPressed: () =>
-                                    Navigator.of(ctx).pop(false),
-                                child: const Text('Cancel'),
-                              ),
-                              FilledButton(
-                                onPressed: () =>
-                                    Navigator.of(ctx).pop(true),
-                                child: const Text('Sign Out'),
-                              ),
-                            ],
-                          ),
-                        );
-                        if (ok == true) {
-                          await FirebaseAuth.instance.signOut();
-                        }
-                      },
-                    ),
-                  ],
-                );
-              },
             ),
           ),
 

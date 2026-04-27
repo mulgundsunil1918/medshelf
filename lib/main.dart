@@ -47,7 +47,6 @@ Future<void> _handleOnboardingReset() async {
 
   if (savedBuild != currentBuild) {
     await prefs.remove('has_seen_tutorial');
-    await prefs.remove('has_seen_auth');
     await prefs.remove('has_completed_onboarding');
     await prefs.setString('installed_build', currentBuild);
     debugPrint('New build detected — onboarding reset');
