@@ -1,10 +1,30 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
 
+import 'package:flutter/material.dart';
+import 'package:flutter_quill/flutter_quill.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+import '../models/med_file.dart';
+import '../models/topic.dart';
 import '../services/database_service.dart';
 import '../services/file_notifier.dart';
 import '../services/file_storage_service.dart';
-import '../models/topic.dart';
 import 'topic_selector_widget.dart';
+
+// ─── 8 background-tint chips for the note editor ──────────────────────────────
+
+const _kHighlights = <Color>[
+  Color(0xFFFFFFFF), // 0 white (clear)
+  Color(0xFFFFF59D), // 1 yellow
+  Color(0xFFC8E6C9), // 2 mint
+  Color(0xFFB3E5FC), // 3 sky
+  Color(0xFFF8BBD0), // 4 pink
+  Color(0xFFD1C4E9), // 5 lavender
+  Color(0xFFFFCCBC), // 6 peach
+  Color(0xFFD7CCC8), // 7 taupe
+];
+
+const _kTeal = Color(0xFF006B74);
 
 class AddNoteSheet extends StatefulWidget {
   const AddNoteSheet({super.key});
@@ -15,7 +35,9 @@ class AddNoteSheet extends StatefulWidget {
 
 class _AddNoteSheetState extends State<AddNoteSheet> {
   late final TextEditingController _titleController;
-  late final TextEditingController _contentController;
+  late final QuillController _quill;
+  final _editorFocus = FocusNode();
+  final _editorScroll = ScrollController();
 
   Topic? _selectedTopic;
   bool _isBookmarked = false;
@@ -25,17 +47,19 @@ class _AddNoteSheetState extends State<AddNoteSheet> {
   void initState() {
     super.initState();
     _titleController = TextEditingController();
-    _contentController = TextEditingController();
+    _quill = QuillController.basic();
   }
 
   @override
   void dispose() {
     _titleController.dispose();
-    _contentController.dispose();
+    _quill.dispose();
+    _editorFocus.dispose();
+    _editorScroll.dispose();
     super.dispose();
   }
 
-  // ─── Save logic ───────────────────────────────────────────────────────────
+  // ── Save ────────────────────────────────────────────────────────────────────
 
   Future<void> _save() async {
     final title = _titleController.text.trim();
@@ -43,8 +67,7 @@ class _AddNoteSheetState extends State<AddNoteSheet> {
       _showError('Please enter a note title.');
       return;
     }
-    final content = _contentController.text.trim();
-    if (content.isEmpty) {
+    if (_quill.document.isEmpty()) {
       _showError('Please write something in your note.');
       return;
     }
@@ -56,14 +79,22 @@ class _AddNoteSheetState extends State<AddNoteSheet> {
 
     setState(() => _isSaving = true);
     try {
+      // Serialize the Quill document as Delta JSON. Stored on disk in a
+      // .txt file for backward compatibility — the file content itself
+      // is what flags it as a rich note (a JSON array starting with '[').
+      final deltaJson = jsonEncode(_quill.document.toDelta().toJson());
+
       final medFile = await FileStorageService.instance.createNote(
         title: title,
-        content: content,
+        content: deltaJson,
         topic: topic,
       );
 
-      final fileToSave =
-          _isBookmarked ? medFile.copyWith(isBookmarked: true) : medFile;
+      // Persist bookmark + note flag in DB
+      MedFile fileToSave = medFile.copyWith(isNote: true);
+      if (_isBookmarked) {
+        fileToSave = fileToSave.copyWith(isBookmarked: true);
+      }
       await DatabaseService.instance.saveFile(fileToSave);
       FileNotifier.instance.notifyFileChanged();
 
@@ -71,12 +102,12 @@ class _AddNoteSheetState extends State<AddNoteSheet> {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Note saved to ${topic.name} ✓'),
+            content: Text('📝 Note saved to ${topic.name}'),
             behavior: SnackBarBehavior.floating,
           ),
         );
       }
-    } catch (e) {
+    } catch (_) {
       if (mounted) _showError('Failed to save note.');
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -93,125 +124,233 @@ class _AddNoteSheetState extends State<AddNoteSheet> {
     );
   }
 
-  // ─── Build ────────────────────────────────────────────────────────────────
+  // ── Highlight tint application ──────────────────────────────────────────────
+
+  void _applyHighlight(Color c, {required bool clear}) {
+    final hex = clear
+        ? null
+        : '#${c.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}';
+    _quill.formatSelection(BackgroundAttribute(hex));
+  }
+
+  // ── Build ───────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
 
-    return Padding(
-      padding:
-          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // ── Drag handle ────────────────────────────────────────────────
-          Center(
-            child: Container(
-              margin: const EdgeInsets.symmetric(vertical: 12),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: cs.onSurfaceVariant.withAlpha(80),
-                borderRadius: BorderRadius.circular(2),
+    return DraggableScrollableSheet(
+      initialChildSize: 0.92,
+      minChildSize: 0.5,
+      maxChildSize: 0.95,
+      expand: false,
+      builder: (ctx, sheetCtrl) {
+        return Padding(
+          padding: EdgeInsets.only(
+              bottom: MediaQuery.of(ctx).viewInsets.bottom),
+          child: Column(
+            children: [
+              // ── Drag handle ──────────────────────────────────────────────
+              Center(
+                child: Container(
+                  margin: const EdgeInsets.symmetric(vertical: 10),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: cs.onSurfaceVariant.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
               ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-            child: Text(
-              'New Note 📝',
-              style: tt.titleLarge?.copyWith(fontWeight: FontWeight.w700),
-            ),
-          ),
-          const Divider(height: 1),
 
-          Flexible(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // ── Note title ────────────────────────────────────────
-                  TextField(
-                    controller: _titleController,
-                    decoration: const InputDecoration(
-                      labelText: 'Note Title',
-                      hintText: 'Enter a title for your note',
-                    ),
-                    textCapitalization: TextCapitalization.sentences,
-                  ),
-                  const SizedBox(height: 20),
-
-                  // ── Note content ──────────────────────────────────────
-                  TextField(
-                    controller: _contentController,
-                    decoration: const InputDecoration(
-                      labelText: 'Content',
-                      hintText: 'Write your note...',
-                      alignLabelWithHint: true,
-                    ),
-                    maxLines: null,
-                    minLines: 5,
-                    textCapitalization: TextCapitalization.sentences,
-                    keyboardType: TextInputType.multiline,
-                  ),
-                  const SizedBox(height: 20),
-
-                  // ── Topic selector ────────────────────────────────────
-                  TopicSelectorWidget(
-                    onChanged: (t) =>
-                        setState(() => _selectedTopic = t),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // ── Bookmark toggle ───────────────────────────────────
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          const Text('🔖',
-                              style: TextStyle(fontSize: 18)),
-                          const SizedBox(width: 8),
-                          Text('Bookmark this note',
-                              style: tt.bodyMedium),
-                        ],
+              // ── Header: title + Save ─────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 16, 8),
+                child: Row(
+                  children: [
+                    const Text('📝', style: TextStyle(fontSize: 22)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextField(
+                        controller: _titleController,
+                        autofocus: true,
+                        style: GoogleFonts.nunito(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                        ),
+                        decoration: const InputDecoration(
+                          hintText: 'Note title…',
+                          border: InputBorder.none,
+                          isDense: true,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        textCapitalization: TextCapitalization.sentences,
                       ),
-                      Switch(
-                        value: _isBookmarked,
-                        onChanged: (v) =>
-                            setState(() => _isBookmarked = v),
+                    ),
+                    FilledButton(
+                      onPressed: _isSaving ? null : _save,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: _kTeal,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 18, vertical: 10),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-
-                  // ── Save / Cancel ─────────────────────────────────────
-                  FilledButton(
-                    onPressed: _isSaving ? null : _save,
-                    child: _isSaving
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                                strokeWidth: 2),
-                          )
-                        : const Text('Save Note'),
-                  ),
-                  const SizedBox(height: 8),
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Cancel'),
-                  ),
-                ],
+                      child: _isSaving
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: Colors.white))
+                          : const Text('Save'),
+                    ),
+                  ],
+                ),
               ),
-            ),
+
+              // ── Quill toolbar ────────────────────────────────────────────
+              QuillSimpleToolbar(
+                controller: _quill,
+                config: const QuillSimpleToolbarConfig(
+                  multiRowsDisplay: false,
+                  showFontFamily: false,
+                  showFontSize: false,
+                  showCodeBlock: false,
+                  showInlineCode: false,
+                  showSubscript: false,
+                  showSuperscript: false,
+                  showAlignmentButtons: false,
+                  showCenterAlignment: false,
+                  showLeftAlignment: false,
+                  showRightAlignment: false,
+                  showJustifyAlignment: false,
+                  showSearchButton: false,
+                  showColorButton: false,
+                  showBackgroundColorButton: false,
+                  showLink: true,
+                  showClearFormat: true,
+                  showBoldButton: true,
+                  showItalicButton: true,
+                  showUnderLineButton: true,
+                  showStrikeThrough: true,
+                  showListBullets: true,
+                  showListNumbers: true,
+                  showIndent: true,
+                  showHeaderStyle: true,
+                  showQuote: true,
+                  showUndo: true,
+                  showRedo: true,
+                  showDirection: false,
+                  showDividers: true,
+                ),
+              ),
+
+              // ── 8-tint highlight strip ───────────────────────────────────
+              SizedBox(
+                height: 44,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  itemCount: _kHighlights.length,
+                  itemBuilder: (_, i) {
+                    final c = _kHighlights[i];
+                    final isWhite = i == 0;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 4, vertical: 4),
+                      child: Tooltip(
+                        message: isWhite ? 'Clear highlight' : 'Highlight',
+                        child: GestureDetector(
+                          onTap: () =>
+                              _applyHighlight(c, clear: isWhite),
+                          child: Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: c,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: cs.onSurfaceVariant
+                                    .withValues(alpha: 0.25),
+                              ),
+                            ),
+                            child: isWhite
+                                ? Icon(Icons.format_color_reset,
+                                    size: 16,
+                                    color: cs.onSurfaceVariant)
+                                : null,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              const Divider(height: 1),
+
+              // ── Editor ───────────────────────────────────────────────────
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: QuillEditor.basic(
+                    controller: _quill,
+                    focusNode: _editorFocus,
+                    scrollController: _editorScroll,
+                    config: const QuillEditorConfig(
+                      placeholder: 'Start writing your note…',
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      autoFocus: false,
+                      expands: false,
+                      scrollable: true,
+                    ),
+                  ),
+                ),
+              ),
+
+              // ── Footer: topic + bookmark ────────────────────────────────
+              Container(
+                decoration: BoxDecoration(
+                  color: cs.surfaceContainerHighest.withValues(alpha: 0.4),
+                  border: Border(
+                      top: BorderSide(
+                          color: cs.outlineVariant
+                              .withValues(alpha: 0.5))),
+                ),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    TopicSelectorWidget(
+                      onChanged: (t) =>
+                          setState(() => _selectedTopic = t),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            const Text('🔖',
+                                style: TextStyle(fontSize: 16)),
+                            const SizedBox(width: 8),
+                            Text('Bookmark this note',
+                                style: tt.bodyMedium),
+                          ],
+                        ),
+                        Switch(
+                          value: _isBookmarked,
+                          onChanged: (v) =>
+                              setState(() => _isBookmarked = v),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

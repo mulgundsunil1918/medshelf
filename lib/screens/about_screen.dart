@@ -130,7 +130,14 @@ class AboutScreen extends StatelessWidget {
             const Divider(height: 1),
             const SizedBox(height: 32),
 
-            // ── Social links ────────────────────────────────────────────────
+            // ── Developer profile ──────────────────────────────────────────
+            _SocialRow(
+              icon:  Icons.public_rounded,
+              label: 'Visit Bridgr — bridgr.co.in',
+              url:   'https://bridgr.co.in/',
+              onTap: (url) => _launch(context, url),
+            ),
+            const SizedBox(height: 16),
             _SocialRow(
               icon:  Icons.camera_alt_rounded,
               label: 'Instagram',

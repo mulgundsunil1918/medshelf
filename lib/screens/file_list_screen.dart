@@ -12,6 +12,7 @@ import '../services/file_notifier.dart';
 import '../services/file_storage_service.dart';
 import '../services/topic_service.dart';
 import '../utils/file_type_icon.dart';
+import '../utils/share_helper.dart';
 import '../widgets/file_thumbnail.dart';
 import '../widgets/edit_topic_sheet.dart';
 import '../widgets/medical_emoji_picker.dart';
@@ -413,23 +414,107 @@ class _FileListScreenState extends State<FileListScreen>
   }
 
   Future<void> _confirmDeleteFolder(TopicService ts) async {
+    // Count what we're about to wipe so we can show a specific warning.
+    final descendantIds = ts.getAllDescendantIds(widget.topic.id);
+    final allIds = [widget.topic.id, ...descendantIds];
+    final files = await DatabaseService.instance.getFilesForTopics(allIds);
+    final fileCount = files.length;
+    final subfolderCount = descendantIds.length;
+
+    if (!mounted) return;
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Folder'),
-        content: Text(
-          'Delete "${widget.topic.name}" and ALL its contents?\n\n'
-          'Files will be moved to Unsorted.',
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16)),
+        icon: const Icon(Icons.warning_amber_rounded,
+            color: Colors.red, size: 36),
+        title: const Text(
+          'Delete this folder?',
+          textAlign: TextAlign.center,
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            RichText(
+              text: TextSpan(
+                style: DefaultTextStyle.of(ctx).style.copyWith(height: 1.5),
+                children: [
+                  const TextSpan(text: 'This will '),
+                  const TextSpan(
+                    text: 'permanently delete',
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                  const TextSpan(text: ' "'),
+                  TextSpan(
+                    text:
+                        '${widget.topic.emoji} ${widget.topic.name}',
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  const TextSpan(text: '" along with:\n'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (fileCount > 0)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text(
+                  '📄  $fileCount file${fileCount == 1 ? '' : 's'} (PDFs, notes, images, videos)',
+                  style: const TextStyle(fontSize: 13, height: 1.4),
+                ),
+              ),
+            if (subfolderCount > 0)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text(
+                  '📁  $subfolderCount subfolder${subfolderCount == 1 ? '' : 's'} and everything inside',
+                  style: const TextStyle(fontSize: 13, height: 1.4),
+                ),
+              ),
+            if (fileCount == 0 && subfolderCount == 0)
+              const Text('ℹ️  No files inside.',
+                  style: TextStyle(fontSize: 13, height: 1.4)),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.red.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(8),
+                border:
+                    Border.all(color: Colors.red.withValues(alpha: 0.25)),
+              ),
+              child: const Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.lock_outline_rounded,
+                      size: 16, color: Colors.red),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'This action cannot be undone. Files will be removed from your device too.',
+                      style: TextStyle(fontSize: 12, height: 1.4),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
         actions: [
           TextButton(
               onPressed: () => Navigator.of(ctx).pop(false),
               child: const Text('Cancel')),
-          FilledButton(
+          FilledButton.icon(
             style: FilledButton.styleFrom(
-                backgroundColor: Theme.of(ctx).colorScheme.error),
+                backgroundColor: Colors.red.shade600),
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Delete'),
+            icon: const Icon(Icons.delete_forever_rounded, size: 18),
+            label: Text(
+              fileCount > 0 ? 'Delete $fileCount files' : 'Delete',
+            ),
           ),
         ],
       ),
@@ -512,6 +597,14 @@ class _FileListScreenState extends State<FileListScreen>
                           _refresh();
                         }
                       });
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.share_rounded),
+                title: const Text('Share'),
+                onTap: () {
+                  Navigator.of(sheetCtx).pop();
+                  ShareHelper.shareFile(context, file);
                 },
               ),
               ListTile(
@@ -728,13 +821,16 @@ class _FileListScreenState extends State<FileListScreen>
             children: [
               Text(
                 '${widget.topic.emoji} ${widget.topic.name}',
-                style: const TextStyle(fontWeight: FontWeight.w700),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
               ),
               if (breadcrumb.isNotEmpty)
                 Text(
                   breadcrumb,
                   style: tt.labelSmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    color: Colors.white.withValues(alpha: 0.85),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -1118,22 +1214,18 @@ class _FileTile extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 4),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (file.isBookmarked)
-                    Icon(Icons.bookmark_rounded,
-                        size: 16, color: cs.primary),
-                  IconButton(
-                    icon: Icon(Icons.info_outline_rounded,
-                        size: 18, color: cs.onSurfaceVariant),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    onPressed: onInfo,
-                    tooltip: 'File Info',
-                  ),
-                ],
+              IconButton(
+                icon: Icon(Icons.share_rounded,
+                    size: 20, color: cs.primary),
+                tooltip: 'Share',
+                onPressed: () => ShareHelper.shareFile(context, file),
               ),
+              if (file.isBookmarked)
+                Padding(
+                  padding: const EdgeInsets.only(right: 4),
+                  child: Icon(Icons.bookmark_rounded,
+                      size: 16, color: cs.primary),
+                ),
             ],
           ),
         ),

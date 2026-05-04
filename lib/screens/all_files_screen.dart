@@ -8,6 +8,7 @@ import '../services/file_storage_service.dart';
 import '../services/topic_service.dart';
 import '../utils/app_colors.dart';
 import '../utils/file_type_icon.dart';
+import '../utils/share_helper.dart';
 import '../widgets/file_thumbnail.dart';
 import '../widgets/save_file_sheet.dart';
 import 'file_properties_screen.dart';
@@ -318,6 +319,14 @@ class _AllFilesScreenState extends State<AllFilesScreen> {
                 },
               ),
               ListTile(
+                leading: const Icon(Icons.share_rounded),
+                title: const Text('Share'),
+                onTap: () {
+                  Navigator.of(sheetCtx).pop();
+                  ShareHelper.shareFile(ctx, file);
+                },
+              ),
+              ListTile(
                 leading: Text(
                   file.isBookmarked ? '🔖' : '📑',
                   style: const TextStyle(fontSize: 20),
@@ -573,25 +582,18 @@ class _AllFileTile extends StatelessWidget {
                   ],
                 ),
               ),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (file.isBookmarked)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: Icon(Icons.bookmark_rounded,
-                          size: 16, color: AppColors.coral),
-                    ),
-                  IconButton(
-                    icon: Icon(Icons.info_outline_rounded,
-                        size: 18, color: cs.onSurfaceVariant),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    onPressed: onInfo,
-                    tooltip: 'File Info',
-                  ),
-                ],
+              IconButton(
+                icon: Icon(Icons.share_rounded,
+                    size: 20, color: cs.primary),
+                tooltip: 'Share',
+                onPressed: () => ShareHelper.shareFile(context, file),
               ),
+              if (file.isBookmarked)
+                Padding(
+                  padding: const EdgeInsets.only(right: 4),
+                  child: Icon(Icons.bookmark_rounded,
+                      size: 16, color: AppColors.coral),
+                ),
             ],
           ),
         ),

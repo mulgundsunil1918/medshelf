@@ -17,6 +17,19 @@
         android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
         tools:ignore="ScopedStorage"/>
 
+    <!-- ── Camera (only for the document scanner) ────────────────────── -->
+    <!-- Used solely by the in-app "Scan Document" feature, which calls
+         Google ML Kit's on-device Document Scanner. Camera is held only
+         while the scanner UI is open and is released the moment the
+         user saves or cancels. No images leave the device. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.autofocus"
+        android:required="false" />
+
     <application
         android:label="MedShelf"
         android:name="${applicationName}"

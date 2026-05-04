@@ -9,6 +9,7 @@ class OnboardingService {
   static const _kSpecialties = 'selected_specialties';
   static const _kTutorialSeen        = 'has_seen_tutorial';
   static const _kPermissionExplained = 'permission_explained';
+  static const _kCoachMarksSeen      = 'has_seen_coach_marks';
 
   Future<bool> hasExplainedPermission() async {
     final prefs = await SharedPreferences.getInstance();
@@ -30,6 +31,16 @@ class OnboardingService {
   Future<void> setHasSeenTutorial() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_kTutorialSeen, true);
+  }
+
+  Future<bool> hasSeenCoachMarks() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_kCoachMarksSeen) ?? false;
+  }
+
+  Future<void> setCoachMarksSeen() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_kCoachMarksSeen, true);
   }
 
   Future<bool> hasCompletedOnboarding() async {

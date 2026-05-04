@@ -4,8 +4,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../utils/app_colors.dart';
 import '../utils/constants.dart';
 
-/// "Buy me a chai" support dialog.
-/// Call [SupportPopup.show] from anywhere you have a [BuildContext].
+/// "Support the developer" dialog. Call [SupportPopup.show] from anywhere
+/// you have a [BuildContext].
 class SupportPopup extends StatelessWidget {
   const SupportPopup({super.key});
 
@@ -34,11 +34,11 @@ class SupportPopup extends StatelessWidget {
       actionsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       title: Row(
         children: [
-          const Text('☕', style: TextStyle(fontSize: 26)),
+          const Text('💛', style: TextStyle(fontSize: 26)),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Enjoying MedShelf? ☕',
+              'Enjoying MedShelf?',
               style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w700),
             ),
           ),
@@ -47,7 +47,8 @@ class SupportPopup extends StatelessWidget {
       content: Text(
         'I built this app with months of effort and kept it completely free. '
         'It costs me for server maintenance, Play Store and App Store fees. '
-        'If MedShelf helps your practice, kindly consider buying me a chai 🙏',
+        'If MedShelf helps your practice, please consider supporting the '
+        'developer 🙏',
         style: tt.bodyMedium?.copyWith(height: 1.5),
       ),
       actions: [
@@ -69,7 +70,7 @@ class SupportPopup extends StatelessWidget {
             _openLink();
           },
           child: const Text(
-            'Buy me a chai ☕',
+            'Support the Developer',
             style: TextStyle(fontWeight: FontWeight.w700),
           ),
         ),

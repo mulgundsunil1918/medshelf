@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/file_notifier.dart';
 import '../services/permission_service.dart';
+import '../utils/constants.dart';
 import '../widgets/save_file_sheet.dart';
 import '../widgets/support_popup.dart';
 import 'home_screen.dart';
@@ -26,8 +28,12 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
   StreamSubscription<List<SharedMediaFile>>? _intentSub;
 
   final _libraryKey = GlobalKey<LibraryScreenState>();
+  final _homeKey    = GlobalKey<HomeScreenState>();
 
   // ── Support popup ─────────────────────────────────────────────────────────
+  // Shown at most once every [kSupportPopupCooldownDays] across all
+  // launches — the timestamp of the last appearance is persisted in
+  // SharedPreferences so the popup doesn't re-fire on every session.
   bool   _popupShownThisSession = false;
   Timer? _supportTimer;
 
@@ -65,9 +71,10 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    // Show support popup after 35 s if not yet shown this session.
+    // Schedule the support popup — fires after 35 s, but only if it's
+    // been at least kSupportPopupCooldownDays since it last appeared.
     _supportTimer = Timer(const Duration(seconds: 35), () {
-      if (!_popupShownThisSession && mounted) _showSupportPopup();
+      if (mounted) _maybeShowSupportPopup();
     });
 
     // Request storage permission after the first frame
@@ -129,19 +136,32 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Show popup when app goes to background (if not already shown).
+    // Try the popup when the app is sent to background — still gated by
+    // the weekly cooldown and the once-per-session flag.
     if (state == AppLifecycleState.paused &&
         !_popupShownThisSession &&
         mounted) {
-      _showSupportPopup();
+      _maybeShowSupportPopup();
     }
   }
 
-  void _showSupportPopup() {
+  /// Gated entry-point — checks the persisted last-shown timestamp and
+  /// only fires the popup if at least [kSupportPopupCooldownDays] have
+  /// elapsed. Once the popup is shown the timestamp is updated so the
+  /// next prompt won't fire for another week.
+  Future<void> _maybeShowSupportPopup() async {
     if (_popupShownThisSession || !mounted) return;
+    final prefs    = await SharedPreferences.getInstance();
+    final lastMs   = prefs.getInt(kSupportPopupLastShownPref) ?? 0;
+    final nowMs    = DateTime.now().millisecondsSinceEpoch;
+    final cooldown =
+        Duration(days: kSupportPopupCooldownDays).inMilliseconds;
+    if (lastMs > 0 && nowMs - lastMs < cooldown) return;
+    if (!mounted) return;
     _popupShownThisSession = true;
     _supportTimer?.cancel();
-    SupportPopup.show(context);
+    await prefs.setInt(kSupportPopupLastShownPref, nowMs);
+    if (mounted) SupportPopup.show(context);
   }
 
   @override
@@ -180,7 +200,7 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final children = <Widget>[
-      HomeScreen(onNavigate: _navigateTo),
+      HomeScreen(key: _homeKey, onNavigate: _navigateTo),
       LibraryScreen(key: _libraryKey),
       const SearchScreen(),
       const SettingsScreen(),
@@ -196,6 +216,9 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
         onDestinationSelected: (index) {
           // Refresh Library counts whenever the Library tab is tapped.
           if (index == 1) _libraryKey.currentState?.refresh();
+          // Re-run coach marks when user returns to Home (e.g. after
+          // resetting the flag from Settings).
+          if (index == 0) _homeKey.currentState?.triggerCoachMarksIfNeeded();
           setState(() => _selectedIndex = index);
         },
         destinations: _destinations,

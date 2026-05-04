@@ -61,14 +61,14 @@ class _BannerContent extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const Text('☕', style: TextStyle(fontSize: 22)),
+            const Text('💛', style: TextStyle(fontSize: 22)),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Like MedShelf? Buy me a chai!',
+                    'Enjoying MedShelf?',
                     style: TextStyle(
                       color:      Colors.white,
                       fontSize:   14,

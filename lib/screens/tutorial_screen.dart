@@ -444,10 +444,11 @@ class _Slide2 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _SlideShell(
-      headline: "Share once. Saved forever. 📥",
-      body: "See a useful PDF in WhatsApp, Telegram, or Gmail? Tap Share → MedShelf "
-          "and it's saved instantly — organised, offline, always available.",
-      subtext: "Works with PDFs, PPTs, videos, images, Word files — anything.",
+      headline: "Save anything, from anywhere. 📥",
+      body: "Share from WhatsApp / Telegram / Gmail · import from your device · "
+          "or tap Scan to capture paper documents with the camera — auto-edge, "
+          "auto-crop, fully offline.",
+      subtext: "PDFs, PPTs, videos, images, Word files — and rich notes too.",
       illustration: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -799,9 +800,10 @@ class _Slide4 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _SlideShell(
-      headline: "Find any file in seconds 🔍",
-      body: "Search by file name, type, or specialty. No more scrolling through "
-          "group chats at 2am before a ward round.",
+      headline: "Find · Share · Stay focused 🔍",
+      body: "Search any file by name, type, or specialty. Tap Share next to any "
+          "file to send it to a colleague on WhatsApp, Email or any other app — "
+          "in two taps.",
       bottomWidget: SizedBox(
         width: double.infinity,
         child: FilledButton(

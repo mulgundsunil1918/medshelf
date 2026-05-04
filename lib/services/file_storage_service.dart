@@ -53,6 +53,33 @@ class FileStorageService {
     return dir.path;
   }
 
+  /// Public — make sure the physical folder for [topicId] exists on disk.
+  /// Called after a topic is created so the user can see it in their Files
+  /// app immediately, even before any file is imported into it.
+  Future<String> ensureTopicDir(String topicId) => _topicDir(topicId);
+
+  /// Permanently delete the physical folder for [topicId] and everything
+  /// inside it (files + subfolders). Best-effort — returns whether the
+  /// folder is verifiably gone afterwards.
+  Future<bool> deleteTopicDir(String topicId) async {
+    try {
+      final base = await _baseDir();
+      final segments =
+          await DatabaseService.instance.getTopicPathNames(topicId);
+      if (segments.isEmpty) return true; // nothing on disk to remove
+      final folderPath = segments
+          .map((s) => s.replaceAll(RegExp(r'[<>:"/\\|?*]'), '').trim())
+          .join('/');
+      final dir = Directory('$base/$folderPath');
+      if (!await dir.exists()) return true;
+      await dir.delete(recursive: true);
+      return !await dir.exists();
+    } catch (e) {
+      debugPrint('Storage: deleteTopicDir error=$e');
+      return false;
+    }
+  }
+
   // ─── Core operations ──────────────────────────────────────────────────────
 
   Future<MedFile> storeFile({
@@ -145,22 +172,48 @@ class FileStorageService {
   }
 
   /// Delete the physical file at [filePath] from device storage.
-  /// Returns [true] whether the file was deleted or was already missing
-  /// (both are clean outcomes). Returns [false] only on an unexpected error.
+  ///
+  /// Returns `true` only when the file is verifiably gone afterwards
+  /// (deleted now, or already missing). Returns `false` if an error
+  /// occurred and the file still exists on disk — callers should keep
+  /// the DB record in that case so app and disk stay in sync.
   Future<bool> deleteFileFromStorage(String filePath) async {
     try {
       final file = File(filePath);
-      final exists = await file.exists();
-      debugPrint('Storage: file exists=$exists  path=$filePath');
-      if (exists) {
-        await file.delete();
-        debugPrint('Storage: deleted successfully');
-      } else {
+      final existsBefore = await file.exists();
+      debugPrint('Storage: file exists=$existsBefore  path=$filePath');
+      if (!existsBefore) {
         debugPrint('Storage: file already missing — treating as deleted');
+        return true;
       }
+      await file.delete();
+      // Verify the OS actually removed it (catches silent permission /
+      // I/O failures that don't throw).
+      final stillExists = await file.exists();
+      if (stillExists) {
+        debugPrint('Storage: delete returned but file still on disk');
+        return false;
+      }
+      debugPrint('Storage: deleted successfully');
       return true;
     } catch (e) {
       debugPrint('Storage: delete error=$e');
+      // Best-effort: even if delete threw, the file might be gone now.
+      try {
+        return !await File(filePath).exists();
+      } catch (_) {
+        return false;
+      }
+    }
+  }
+
+  /// Returns whether [filePath] currently exists on disk. Used to keep
+  /// the DB in sync with the filesystem (e.g. when the user deletes a
+  /// file via their Files app).
+  Future<bool> fileExists(String filePath) async {
+    try {
+      return await File(filePath).exists();
+    } catch (_) {
       return false;
     }
   }

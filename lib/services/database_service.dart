@@ -312,22 +312,49 @@ class DatabaseService {
   /// Move all files belonging to any id in [allIds] to 'unsorted', then
   /// delete all matching custom-topic rows. Works for cascade-delete of a
   /// topic and all its descendants.
+  /// Delete a topic and its descendants. By default this PERMANENTLY
+  /// deletes every file inside those topics; pass [moveFilesToUnsorted]
+  /// to relocate them to the Unsorted folder instead.
   Future<void> deleteTopicAndChildren(
-      String id, List<String> allIds) async {
+    String id,
+    List<String> allIds, {
+    bool moveFilesToUnsorted = false,
+  }) async {
     if (allIds.isEmpty) return;
     final db = await database;
     final placeholders = allIds.map((_) => '?').join(',');
 
-    // Relocate files to unsorted
-    await db.rawUpdate(
-      'UPDATE files SET topicId = ? WHERE topicId IN ($placeholders)',
-      ['unsorted', ...allIds],
-    );
+    if (moveFilesToUnsorted) {
+      await db.rawUpdate(
+        'UPDATE files SET topicId = ? WHERE topicId IN ($placeholders)',
+        ['unsorted', ...allIds],
+      );
+    } else {
+      await db.rawDelete(
+        'DELETE FROM files WHERE topicId IN ($placeholders)',
+        allIds,
+      );
+    }
 
     // Delete all custom topic rows
     await db.rawDelete(
       'DELETE FROM custom_topics WHERE id IN ($placeholders)',
       allIds,
     );
+  }
+
+  /// Returns all files that belong to any of the given [topicIds].
+  /// Used before a destructive topic-delete so we can show a count and
+  /// remove the corresponding files from disk.
+  Future<List<MedFile>> getFilesForTopics(List<String> topicIds) async {
+    if (topicIds.isEmpty) return [];
+    final db = await database;
+    final placeholders = topicIds.map((_) => '?').join(',');
+    final rows = await db.query(
+      'files',
+      where: 'topicId IN ($placeholders)',
+      whereArgs: topicIds,
+    );
+    return rows.map(_mapToFile).toList();
   }
 }

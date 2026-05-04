@@ -5,13 +5,17 @@ import 'package:provider/provider.dart';
 
 import '../models/med_file.dart';
 import '../models/topic.dart';
+import '../services/camera_scan_service.dart';
 import '../services/database_service.dart';
 import '../services/file_notifier.dart';
 import '../services/file_storage_service.dart';
+import '../services/onboarding_service.dart';
 import '../services/topic_service.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_theme.dart';
+import '../utils/share_helper.dart';
 import '../widgets/add_note_sheet.dart';
+import '../widgets/coach_mark_overlay.dart';
 import '../widgets/file_thumbnail.dart';
 import '../widgets/save_file_sheet.dart';
 import '../widgets/support_banner.dart';
@@ -43,23 +47,110 @@ class HomeScreen extends StatefulWidget {
   final void Function(int tabIndex) onNavigate;
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<HomeScreen> createState() => HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class HomeScreenState extends State<HomeScreen> {
   late Future<_HomeData> _dataFuture;
+
+  /// Public — called by MainShell when the home tab gains focus, so the
+  /// coach-mark tour can re-run after the user resets it in Settings.
+  Future<void> triggerCoachMarksIfNeeded() => _maybeRunCoachMarks();
+
+  // Keys used to anchor the interactive coach-mark walkthrough on the
+  // first home-screen visit.
+  final GlobalKey _kImportBtn  = GlobalKey();
+  final GlobalKey _kSearchBtn  = GlobalKey();
+  final GlobalKey _kScanBtn    = GlobalKey();
+  final GlobalKey _kQuickNote  = GlobalKey();
+  final GlobalKey _kSpecialty  = GlobalKey();
+
+  bool _coachMarksRunning = false;
 
   @override
   void initState() {
     super.initState();
     _dataFuture = _loadData();
     FileNotifier.instance.addListener(_onRefresh);
+
+    // After the first frame, run the coach-mark tour if the user hasn't
+    // seen it yet. The 600 ms delay gives the lazy-loaded content time
+    // to settle so the GlobalKeys resolve to real on-screen rects.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeRunCoachMarks());
+  }
+
+  Future<void> _maybeRunCoachMarks() async {
+    if (_coachMarksRunning || !mounted) return;
+    final seen = await OnboardingService.instance.hasSeenCoachMarks();
+    if (seen || !mounted) return;
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (!mounted || _coachMarksRunning) return;
+    _coachMarksRunning = true;
+    try {
+      await _runCoachMarks();
+    } finally {
+      _coachMarksRunning = false;
+    }
   }
 
   @override
   void dispose() {
     FileNotifier.instance.removeListener(_onRefresh);
     super.dispose();
+  }
+
+  Future<void> _runCoachMarks() async {
+    await showCoachMarks(
+      context,
+      steps: [
+        CoachStep(
+          targetKey: _kImportBtn,
+          icon: Icons.upload_file_rounded,
+          title: 'Import Files 📥',
+          description:
+              'Tap here to add PDFs, images, videos, or documents to '
+              'your library. Choose a single file, multiple files, or an '
+              'entire folder at once.',
+        ),
+        CoachStep(
+          targetKey: _kSearchBtn,
+          icon: Icons.phone_android_rounded,
+          title: 'Search Your Device 🔍',
+          description:
+              'MedShelf can scan WhatsApp, Telegram, Downloads and more — '
+              'finding all your scattered medical files in seconds.',
+        ),
+        CoachStep(
+          targetKey: _kScanBtn,
+          icon: Icons.document_scanner_rounded,
+          title: 'Scan Documents 📷',
+          description:
+              'Snap photos of paper notes, prescriptions or printouts and '
+              'MedShelf turns them into clean PDFs — all on-device, '
+              'nothing uploaded.',
+        ),
+        CoachStep(
+          targetKey: _kQuickNote,
+          icon: Icons.edit_note_rounded,
+          title: 'Quick Rich Note ⚡',
+          description:
+              'Capture a richly-formatted study note with bold, italic, '
+              'underline, highlights, lists and more — saved into the '
+              'specialty of your choice.',
+        ),
+        CoachStep(
+          targetKey: _kSpecialty,
+          icon: Icons.local_hospital_rounded,
+          title: 'Browse by Specialty 🏥',
+          description:
+              'Tap a specialty to see all your files inside it. Your '
+              'library mirrors the way medical knowledge is structured.',
+          tooltipPosition: TooltipPosition.above,
+        ),
+      ],
+    );
+    if (!mounted) return;
+    await OnboardingService.instance.setCoachMarksSeen();
   }
 
   Future<_HomeData> _loadData() async {
@@ -87,6 +178,35 @@ class _HomeScreenState extends State<HomeScreen> {
     return mb < 1
         ? '${(bytes / 1024).toStringAsFixed(1)} KB'
         : '${mb.toStringAsFixed(1)} MB';
+  }
+
+  Future<void> _scanCamera() async {
+    String? scanned;
+    try {
+      scanned = await CameraScanService.instance.scanDocument();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not start the camera scanner.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    if (scanned == null || !mounted) return; // user cancelled
+
+    // Hand the scanned file path to the existing save-file flow.
+    final saved = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => SaveFileSheet(sourcePath: scanned!),
+    );
+    if (saved == true) await _onRefresh();
   }
 
   Future<void> _importDocuments() async {
@@ -259,78 +379,38 @@ class _HomeScreenState extends State<HomeScreen> {
                           const SupportBanner(),
                           const SizedBox(height: 16),
 
-                          // ── Import + Search Device ─────────────────
+                          // ── Import + Search Device + Scan ─────────
                           Row(
                             children: [
                               Expanded(
-                                child: InkWell(
-                                  onTap: () =>
-                                      _showImportOptions(context),
-                                  borderRadius:
-                                      BorderRadius.circular(12),
-                                  child: Container(
-                                    padding: const EdgeInsets
-                                        .symmetric(vertical: 16),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF006B74),
-                                      borderRadius:
-                                          BorderRadius.circular(12),
-                                    ),
-                                    child: const Column(
-                                      children: [
-                                        Icon(Icons.upload_file_rounded,
-                                            color: Colors.white,
-                                            size: 28),
-                                        SizedBox(height: 6),
-                                        Text(
-                                          'Import Files',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 13,
-                                          ),
-                                        ),
-                                      ],
+                                child: _ActionPill(
+                                  globalKey: _kImportBtn,
+                                  icon: Icons.upload_file_rounded,
+                                  label: 'Import',
+                                  onTap: () => _showImportOptions(context),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _ActionPill(
+                                  globalKey: _kSearchBtn,
+                                  icon: Icons.phone_android_rounded,
+                                  label: 'Find on Device',
+                                  onTap: () => Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          const DeviceFileSearchScreen(),
                                     ),
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 12),
+                              const SizedBox(width: 8),
                               Expanded(
-                                child: InkWell(
-                                  onTap: () =>
-                                      Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                        builder: (_) =>
-                                            const DeviceFileSearchScreen()),
-                                  ),
-                                  borderRadius:
-                                      BorderRadius.circular(12),
-                                  child: Container(
-                                    padding: const EdgeInsets
-                                        .symmetric(vertical: 16),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF006B74),
-                                      borderRadius:
-                                          BorderRadius.circular(12),
-                                    ),
-                                    child: const Column(
-                                      children: [
-                                        Icon(Icons.phone_android_rounded,
-                                            color: Colors.white,
-                                            size: 28),
-                                        SizedBox(height: 6),
-                                        Text(
-                                          'Search Device',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 13,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                                child: _ActionPill(
+                                  globalKey: _kScanBtn,
+                                  icon: Icons.document_scanner_rounded,
+                                  label: 'Scan',
+                                  onTap: _scanCamera,
                                 ),
                               ),
                             ],
@@ -339,6 +419,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           // ── Quick Note ─────────────────────────────
                           const SizedBox(height: 12),
                           GestureDetector(
+                            key: _kQuickNote,
                             onTap: _showAddNoteSheet,
                             child: Container(
                               width: double.infinity,
@@ -391,11 +472,14 @@ class _HomeScreenState extends State<HomeScreen> {
                             tt: tt,
                           ),
                           const SizedBox(height: 12),
-                          _SpecialtyRow(
-                            topics: topicService.rootTopics,
-                            onTap: (_) => widget.onNavigate(1),
-                            cs: cs,
-                            tt: tt,
+                          KeyedSubtree(
+                            key: _kSpecialty,
+                            child: _SpecialtyRow(
+                              topics: topicService.rootTopics,
+                              onTap: (_) => widget.onNavigate(1),
+                              cs: cs,
+                              tt: tt,
+                            ),
                           ),
                           const SizedBox(height: 24),
 
@@ -468,7 +552,54 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// ─── Quick Action Card ────────────────────────────────────────────────────────
+// ─── Action pill (Import / Find / Scan) ──────────────────────────────────────
+
+class _ActionPill extends StatelessWidget {
+  const _ActionPill({
+    required this.globalKey,
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final GlobalKey globalKey;
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      key: globalKey,
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
+        decoration: BoxDecoration(
+          color: const Color(0xFF006B74),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: Colors.white, size: 26),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 // ─── Greeting Banner ──────────────────────────────────────────────────────────
 
@@ -1262,6 +1393,14 @@ class _FileListTile extends StatelessWidget {
                 },
               ),
               ListTile(
+                leading: const Icon(Icons.share_rounded),
+                title: const Text('Share'),
+                onTap: () {
+                  Navigator.of(sheetCtx).pop();
+                  ShareHelper.shareFile(ctx, file);
+                },
+              ),
+              ListTile(
                 leading:
                     const Icon(Icons.drive_file_move_rounded),
                 title: const Text('Move to folder'),
@@ -1332,26 +1471,19 @@ class _FileListTile extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 4),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (file.isBookmarked)
-                    Icon(Icons.bookmark_rounded,
-                        size: 16, color: badgeColor),
-                  IconButton(
-                    icon: Icon(Icons.info_outline_rounded,
-                        size: 18, color: cs.onSurfaceVariant),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    onPressed: () => Navigator.of(context)
-                        .push(MaterialPageRoute(
-                            builder: (_) =>
-                                FilePropertiesScreen(file: file)))
-                        .then((_) => onRefresh()),
-                    tooltip: 'File Info',
-                  ),
-                ],
+              // Share — visible action so users can send to any app.
+              IconButton(
+                icon: Icon(Icons.share_rounded,
+                    size: 20, color: cs.primary),
+                tooltip: 'Share',
+                onPressed: () => ShareHelper.shareFile(context, file),
               ),
+              if (file.isBookmarked)
+                Padding(
+                  padding: const EdgeInsets.only(right: 4),
+                  child: Icon(Icons.bookmark_rounded,
+                      size: 16, color: badgeColor),
+                ),
             ],
           ),
         ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart' show Share;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../services/file_storage_service.dart';
@@ -74,6 +75,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
     Navigator.of(context).push(
       MaterialPageRoute(
           builder: (_) => const TutorialScreen(fromSettings: true)),
+    );
+  }
+
+  Future<void> _replayCoachMarks() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('has_seen_coach_marks');
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Tour will start when you return to Home'),
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 2),
+      ),
     );
   }
 
@@ -263,6 +277,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 const Divider(height: 1, indent: 72),
                 _SettingsTile(
+                  icon: Icons.tour_rounded,
+                  emoji: null,
+                  title: 'Replay Interactive Tour',
+                  subtitle: 'See feature highlights on the home screen',
+                  cs: cs,
+                  tt: tt,
+                  onTap: _replayCoachMarks,
+                ),
+                const Divider(height: 1, indent: 72),
+                _SettingsTile(
                   icon: Icons.help_outline_rounded,
                   emoji: null,
                   title: 'How to Import Files',
@@ -366,15 +390,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 alignment: Alignment.center,
-                child: Icon(Icons.coffee_rounded,
+                child: Icon(Icons.favorite_rounded,
                     size: 20, color: AppColors.coral),
               ),
               title: Text(
-                'Support MedShelf ☕',
+                'Support the Developer',
                 style: tt.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
               ),
               subtitle:
-                  const Text('Buy me a chai to keep the app alive'),
+                  const Text('Help keep MedShelf free and ad-free 🙏'),
               trailing: const Icon(Icons.chevron_right_rounded),
               onTap: () => _launchUrl(kSupportLink),
             ),

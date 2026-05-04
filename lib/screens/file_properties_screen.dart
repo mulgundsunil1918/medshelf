@@ -12,6 +12,7 @@ import '../services/database_service.dart';
 import '../services/file_storage_service.dart';
 import '../services/topic_service.dart';
 import '../utils/app_colors.dart';
+import '../utils/share_helper.dart';
 import '../widgets/topic_selector_widget.dart';
 import 'note_viewer_screen.dart';
 
@@ -501,6 +502,12 @@ class _FilePropertiesScreenState extends State<FilePropertiesScreen> {
               onPressed: () => NoteViewerScreen.open(context, _file),
               icon: const Icon(Icons.open_in_new_rounded),
               label: const Text('Open File'),
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: () => ShareHelper.shareFile(context, _file),
+              icon: const Icon(Icons.share_rounded),
+              label: const Text('Share'),
             ),
             const SizedBox(height: 12),
             OutlinedButton.icon(

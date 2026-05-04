@@ -229,25 +229,104 @@ Future<void> _confirmDeleteCard(
   Future<void> Function() onDone,
 ) async {
   final ts = Provider.of<TopicService>(context, listen: false);
+
+  // Tally everything that will be wiped — files inside the topic and all
+  // its descendants — so the disclaimer can be specific.
+  final descendantIds = ts.getAllDescendantIds(topic.id);
+  final allIds = [topic.id, ...descendantIds];
+  final files = await DatabaseService.instance.getFilesForTopics(allIds);
+  final fileCount = files.length;
+  final subfolderCount = descendantIds.length;
+
+  if (!context.mounted) return;
+
   final ok = await showDialog<bool>(
     context: context,
     builder: (ctx) => AlertDialog(
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16)),
-      title:   const Text('Delete folder?'),
-      content: Text(
-          '"${topic.emoji} ${topic.name}" and all its contents will be '
-          'permanently deleted.'),
+      icon: const Icon(Icons.warning_amber_rounded,
+          color: Colors.red, size: 36),
+      title: const Text(
+        'Delete this specialty?',
+        textAlign: TextAlign.center,
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          RichText(
+            text: TextSpan(
+              style: DefaultTextStyle.of(ctx).style.copyWith(height: 1.5),
+              children: [
+                const TextSpan(text: 'This will '),
+                const TextSpan(
+                  text: 'permanently delete',
+                  style: TextStyle(fontWeight: FontWeight.w800),
+                ),
+                const TextSpan(text: ' "'),
+                TextSpan(
+                  text: '${topic.emoji} ${topic.name}',
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                const TextSpan(text: '" along with:\n'),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          if (fileCount > 0)
+            _BulletLine(
+              icon: '📄',
+              text:
+                  '$fileCount file${fileCount == 1 ? '' : 's'} (PDFs, notes, images, videos)',
+            ),
+          if (subfolderCount > 0)
+            _BulletLine(
+              icon: '📁',
+              text:
+                  '$subfolderCount subfolder${subfolderCount == 1 ? '' : 's'} and everything inside',
+            ),
+          if (fileCount == 0 && subfolderCount == 0)
+            const _BulletLine(icon: 'ℹ️', text: 'No files inside.'),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.red.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(8),
+              border:
+                  Border.all(color: Colors.red.withValues(alpha: 0.25)),
+            ),
+            child: const Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.lock_outline_rounded,
+                    size: 16, color: Colors.red),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'This action cannot be undone. Files will be removed from your device too.',
+                    style: TextStyle(fontSize: 12, height: 1.4),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(ctx).pop(false),
           child: const Text('Cancel'),
         ),
-        FilledButton(
+        FilledButton.icon(
           style: FilledButton.styleFrom(
               backgroundColor: Colors.red.shade600),
           onPressed: () => Navigator.of(ctx).pop(true),
-          child: const Text('Delete'),
+          icon: const Icon(Icons.delete_forever_rounded, size: 18),
+          label: Text(
+            fileCount > 0 ? 'Delete $fileCount files' : 'Delete',
+          ),
         ),
       ],
     ),
@@ -255,6 +334,42 @@ Future<void> _confirmDeleteCard(
   if (ok != true) return;
   await ts.deleteTopic(topic.id);
   await onDone();
+  if (context.mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          fileCount > 0
+              ? '🗑️ Deleted "${topic.name}" and $fileCount file${fileCount == 1 ? '' : 's'}'
+              : '🗑️ Deleted "${topic.name}"',
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+}
+
+class _BulletLine extends StatelessWidget {
+  const _BulletLine({required this.icon, required this.text});
+  final String icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(icon, style: const TextStyle(fontSize: 14)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(text,
+                style: const TextStyle(fontSize: 13, height: 1.4)),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -798,6 +913,20 @@ class _TopicCardsScreenState extends State<_TopicCardsScreen> {
     return result;
   }
 
+  Future<void> _addSubfolder() async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => _AddTopicSheet(
+        onAdded: _reload,
+        preselectedParent: widget.parentTopic,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final children = widget.topicService.flatTopics
@@ -808,15 +937,44 @@ class _TopicCardsScreenState extends State<_TopicCardsScreen> {
       appBar: AppBar(
         title: Text(
             '${widget.parentTopic.emoji} ${widget.parentTopic.name}'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.create_new_folder_rounded),
+            tooltip: 'Add subfolder',
+            onPressed: _addSubfolder,
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _addSubfolder,
+        icon: const Icon(Icons.create_new_folder_rounded),
+        label: const Text('New Folder'),
+        backgroundColor: const Color(0xFFE8835A),
+        foregroundColor: Colors.white,
       ),
       body: children.isEmpty
           ? Center(
-              child: Text(
-                'No subtopics yet.',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.copyWith(color: Colors.grey),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('📁', style: TextStyle(fontSize: 48)),
+                  const SizedBox(height: 12),
+                  Text(
+                    'No subfolders yet.',
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(color: Colors.grey),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Tap "+ New Folder" to add one.',
+                    style: Theme.of(context)
+                        .textTheme
+                        .labelSmall
+                        ?.copyWith(color: Colors.grey),
+                  ),
+                ],
               ),
             )
           : GridView.builder(

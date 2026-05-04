@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/topic.dart';
 import 'database_service.dart';
+import 'file_storage_service.dart';
 
 class TopicService extends ChangeNotifier {
   TopicService._();
@@ -196,6 +197,16 @@ class TopicService extends ChangeNotifier {
     await _db.saveCustomTopic(topic);
     _insertLeaf(topic);
     notifyListeners();
+
+    // Create the matching physical folder on disk so the user can see it
+    // in their Files app immediately. Best-effort — silently ignore I/O
+    // errors so a permission issue doesn't block topic creation.
+    try {
+      await FileStorageService.instance.ensureTopicDir(id);
+    } catch (e) {
+      debugPrint('TopicService: ensureTopicDir failed for $id: $e');
+    }
+
     return _flatMap[id] ?? topic; // return the inserted node (has correct depth)
   }
 
@@ -245,17 +256,44 @@ class TopicService extends ChangeNotifier {
   }
 
   /// Delete ANY topic and ALL its descendants.
-  /// Files are moved to 'unsorted'. Default topics persist their
-  /// deletion via SharedPreferences so they don't come back on reload.
-  Future<void> deleteTopic(String id) async {
+  ///
+  /// By default this is a **destructive** operation: every file that lives
+  /// under [id] (or any of its sub-topics) is permanently removed from
+  /// disk and the database, and the matching MedShelf folder tree is
+  /// deleted from device storage. Pass [moveFilesToUnsorted] to keep the
+  /// files instead — they will be reassigned to the "Unsorted" topic.
+  ///
+  /// Default topics persist their deletion via SharedPreferences so they
+  /// don't come back on the next app launch.
+  Future<void> deleteTopic(
+    String id, {
+    bool moveFilesToUnsorted = false,
+  }) async {
     final topic = _flatMap[id];
     if (topic == null) return;
 
     final descendantIds = getAllDescendantIds(id);
     final allIds = [id, ...descendantIds];
 
-    // Move files to unsorted, delete custom topic rows
-    await _db.deleteTopicAndChildren(id, allIds);
+    // 1. Resolve the on-disk folder path NOW, before the DB rows go away
+    //    (deleteTopicDir uses the DB to build that path).
+    if (!moveFilesToUnsorted) {
+      // Permanently delete every physical file inside these topics.
+      final files = await _db.getFilesForTopics(allIds);
+      for (final f in files) {
+        await FileStorageService.instance.deleteFileFromStorage(f.path);
+      }
+      // Delete the empty MedShelf subtree on disk while the path
+      // resolver still works.
+      await FileStorageService.instance.deleteTopicDir(id);
+    }
+
+    // 2. Update the DB — delete file rows (or move them) + delete topic rows
+    await _db.deleteTopicAndChildren(
+      id,
+      allIds,
+      moveFilesToUnsorted: moveFilesToUnsorted,
+    );
 
     // For default topics, persist deletion so they don't reappear on reload
     final defaultIds =
