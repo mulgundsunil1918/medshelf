@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:file_picker/file_picker.dart' hide FileType;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -112,14 +114,17 @@ class HomeScreenState extends State<HomeScreen> {
               'your library. Choose a single file, multiple files, or an '
               'entire folder at once.',
         ),
-        CoachStep(
-          targetKey: _kSearchBtn,
-          icon: Icons.phone_android_rounded,
-          title: 'Search Your Device 🔍',
-          description:
-              'MedShelf can scan WhatsApp, Telegram, Downloads and more — '
-              'finding all your scattered medical files in seconds.',
-        ),
+        // "Find on Device" pill is Android-only — skip the matching step
+        // on iOS so the spotlight has something real to point at.
+        if (!Platform.isIOS)
+          CoachStep(
+            targetKey: _kSearchBtn,
+            icon: Icons.phone_android_rounded,
+            title: 'Search Your Device 🔍',
+            description:
+                'MedShelf can scan WhatsApp, Telegram, Downloads and more — '
+                'finding all your scattered medical files in seconds.',
+          ),
         CoachStep(
           targetKey: _kScanBtn,
           icon: Icons.document_scanner_rounded,
@@ -390,20 +395,28 @@ class HomeScreenState extends State<HomeScreen> {
                                   onTap: () => _showImportOptions(context),
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: _ActionPill(
-                                  globalKey: _kSearchBtn,
-                                  icon: Icons.phone_android_rounded,
-                                  label: 'Find on Device',
-                                  onTap: () => Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (_) =>
-                                          const DeviceFileSearchScreen(),
+                              // "Find on Device" only makes sense on Android,
+                              // where MedShelf can scan WhatsApp / Telegram /
+                              // Downloads folders. On iOS the OS sandbox
+                              // forbids reading other apps' data, so we hide
+                              // this pill entirely instead of showing a
+                              // useless button that crashes when tapped.
+                              if (!Platform.isIOS) ...[
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: _ActionPill(
+                                    globalKey: _kSearchBtn,
+                                    icon: Icons.phone_android_rounded,
+                                    label: 'Find on Device',
+                                    onTap: () => Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            const DeviceFileSearchScreen(),
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
+                              ],
                               const SizedBox(width: 8),
                               Expanded(
                                 child: _ActionPill(

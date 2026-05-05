@@ -2,12 +2,13 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- ─── Standard Flutter / app metadata ────────────────────────── -->
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Medshelf</string>
+	<string>MedShelf</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -26,18 +27,67 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+
+	<!-- ─── Privacy permission strings (App Store Review reads these) ─── -->
+	<!-- Apple rejects vague reasons — each string must explain WHEN and WHY. -->
+
+	<key>NSCameraUsageDescription</key>
+	<string>MedShelf uses the camera only when you tap the Scan button to digitise a paper document. Edge detection and contrast enhancement happen on your device — no images are uploaded.</string>
+
+	<key>NSMicrophoneUsageDescription</key>
+	<string>MedShelf needs microphone access only if you record audio notes for a study topic. Recordings stay on your device.</string>
+
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>MedShelf needs access to your photo library to import medical images and videos.</string>
+	<string>MedShelf accesses your photo library only when you choose Import Files and pick a medical image. Photos you do not select are never read.</string>
+
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>MedShelf needs permission to save files to your photo library.</string>
+	<string>MedShelf saves shared documents back to your photo library when you choose to export them.</string>
+
 	<key>NSDocumentsFolderUsageDescription</key>
-	<string>MedShelf needs access to your documents to import and manage medical study files.</string>
+	<string>MedShelf reads documents you pick from the Files app to import them into your medical study library.</string>
+
 	<key>NSFileProviderDomainUsageDescription</key>
-	<string>MedShelf uses file storage to organize your medical study materials.</string>
+	<string>MedShelf organises your imported study material into folders that show up under Files › On My iPhone › MedShelf.</string>
+
+	<!-- Files-app integration — exposes MedShelf's documents folder so users
+	     can browse it from Apple's Files app. -->
 	<key>UIFileSharingEnabled</key>
 	<true/>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
+
+	<!-- ─── Document type / share-target wiring ─────────────────────── -->
+	<!-- Lets other apps (Mail, WhatsApp, Safari) hand a file to MedShelf via
+	     "Share → MedShelf" or "Open with MedShelf". Mirrors the Android
+	     SEND / SEND_MULTIPLE intent filters. -->
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>All Files</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>public.content</string>
+				<string>public.data</string>
+				<string>public.image</string>
+				<string>public.movie</string>
+				<string>public.audio</string>
+				<string>com.adobe.pdf</string>
+				<string>org.openxmlformats.wordprocessingml.document</string>
+				<string>org.openxmlformats.presentationml.presentation</string>
+				<string>org.openxmlformats.spreadsheetml.sheet</string>
+				<string>com.microsoft.word.doc</string>
+				<string>com.microsoft.powerpoint.ppt</string>
+				<string>com.microsoft.excel.xls</string>
+				<string>public.plain-text</string>
+				<string>public.rtf</string>
+			</array>
+		</dict>
+	</array>
+
+	<!-- ─── Scene + UI configuration ──────────────────────────────── -->
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -78,5 +128,11 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+
+	<!-- Apple's iOS 17+ privacy nutrition labels infer most of these from
+	     usage descriptions, but adding ITSAppUsesNonExemptEncryption=false
+	     skips an export-compliance step at every TestFlight upload. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>

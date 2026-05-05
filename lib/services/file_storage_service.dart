@@ -15,12 +15,21 @@ class FileStorageService {
   // ─── Directory helpers ────────────────────────────────────────────────────
 
   Future<String> _baseDir() async {
+    // iOS / macOS: apps are sandboxed. The only writable location that
+    // also shows up in the Files app is the app's own Documents folder
+    // (because Info.plist sets UIFileSharingEnabled and
+    // LSSupportsOpeningDocumentsInPlace).
+    if (Platform.isIOS || Platform.isMacOS) {
+      final docs = await getApplicationDocumentsDirectory();
+      final dir = Directory(p.join(docs.path, 'MedShelf'));
+      if (!await dir.exists()) await dir.create(recursive: true);
+      return dir.path;
+    }
+
+    // Android: try to write to /storage/emulated/0/MedShelf so the user
+    // can see the folder via any Files app. Falls back to the app's
+    // private external folder if MANAGE_EXTERNAL_STORAGE was denied.
     try {
-      // getExternalStorageDirectory() returns something like:
-      //   /storage/emulated/0/Android/data/com.medshelf.medshelf/files
-      // We navigate UP past the "Android/" subfolder to reach
-      //   /storage/emulated/0/
-      // then create /storage/emulated/0/MedShelf/ — fully visible in Files app.
       final extDir = await getExternalStorageDirectory();
       if (extDir != null) {
         final rootPath = extDir.path.split('Android')[0]; // ends with '/'
@@ -32,7 +41,6 @@ class FileStorageService {
       }
     } catch (_) {}
 
-    // Fallback: app-specific external storage (always accessible, no permission needed)
     final fallback = await getExternalStorageDirectory() ??
         await getApplicationDocumentsDirectory();
     final dir = Directory(p.join(fallback.path, 'MedShelf'));
@@ -135,6 +143,10 @@ class FileStorageService {
     await File(filePath).writeAsString(content);
     final stat = await File(filePath).stat();
 
+    // Note: we deliberately do NOT pass `content` as `description` —
+    // notes save Quill Delta JSON to disk, and stuffing the raw JSON
+    // into description leaks into list-row previews. Callers that want
+    // a preview snippet should derive one from the Delta themselves.
     return MedFile(
       name: title,
       path: filePath,
@@ -142,7 +154,6 @@ class FileStorageService {
       fileType: FileType.document,
       sizeBytes: stat.size,
       savedAt: DateTime.now(),
-      description: content,
       isNote: true,
     );
   }

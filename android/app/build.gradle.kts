@@ -3,9 +3,6 @@ import java.io.FileInputStream
 
 plugins {
     id("com.android.application")
-    // START: FlutterFire Configuration
-    id("com.google.gms.google-services")
-    // END: FlutterFire Configuration
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
@@ -35,8 +32,8 @@ android {
         applicationId = "com.medshelf.medshelf"
         minSdk = flutter.minSdkVersion
         targetSdk = 35
-        versionCode = 10
-        versionName = "1.1.0"
+        versionCode = 15
+        versionName = "1.1.4"
     }
 
     signingConfigs {

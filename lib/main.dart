@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_quill/flutter_quill.dart';
@@ -16,7 +15,6 @@ import 'utils/app_theme.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await _handleOnboardingReset();
-  await Firebase.initializeApp();
 
   // Desktop platforms need the FFI implementation
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
