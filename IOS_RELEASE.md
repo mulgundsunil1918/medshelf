@@ -22,7 +22,7 @@ already wired up in the repo.
 ## 🚀 First-time Codemagic setup (~30 min, one-time)
 
 1. **Sign in at <https://codemagic.io>** with your GitHub account.
-2. **Add repository**: pick `mulgundsunil1918/medshelf`.
+2. **Add repository**: connect your private MedShelf repository.
 3. **App Store Connect API key**:
    - Go to App Store Connect → Users and Access → Integrations → App Store
      Connect API → Generate New Key (Admin role)
