@@ -10,19 +10,6 @@ import '../services/database_service.dart';
 import '../services/file_notifier.dart';
 import '../utils/share_helper.dart';
 
-// ─── Note background tints (page background, not text highlight) ─────────────
-
-const _kBgColors = <Color>[
-  Color(0xFFFFFFFF), // 0 white
-  Color(0xFFFFF9C4), // 1 yellow
-  Color(0xFFDCEDC8), // 2 mint
-  Color(0xFFB3E5FC), // 3 sky
-  Color(0xFFFFCDD2), // 4 blush
-  Color(0xFFE1BEE7), // 5 lavender
-  Color(0xFFFFE0B2), // 6 peach
-  Color(0xFFD7CCC8), // 7 taupe
-];
-
 // ─── 8 inline-highlight tints (applied to selected text) ──────────────────────
 
 const _kHighlights = <Color>[
@@ -102,7 +89,6 @@ class _NoteEditorPageState extends State<_NoteEditorPage> {
   bool _hasChanges = false;
   bool _isSaving = false;
   bool _isPinned = false;
-  int _bgIdx = 0;
 
   // ── Lifecycle ──────────────────────────────────────────────────────────────
 
@@ -110,17 +96,6 @@ class _NoteEditorPageState extends State<_NoteEditorPage> {
   void initState() {
     super.initState();
     _isPinned = widget.file.isBookmarked;
-
-    // Restore saved page background colour stored as "c:N" in MedFile.notes.
-    final raw = widget.file.notes;
-    if (raw != null) {
-      final m = RegExp(r'^c:(\d)$').firstMatch(raw.trim());
-      if (m != null) {
-        final idx = int.parse(m.group(1)!);
-        if (idx < _kBgColors.length) _bgIdx = idx;
-      }
-    }
-
     _load();
   }
 
@@ -151,7 +126,6 @@ class _NoteEditorPageState extends State<_NoteEditorPage> {
     if (trimmed.isEmpty) {
       doc = Document();
     } else if (trimmed.startsWith('[')) {
-      // Delta JSON (Quill format)
       try {
         final parsed = jsonDecode(trimmed);
         if (parsed is List) {
@@ -160,11 +134,9 @@ class _NoteEditorPageState extends State<_NoteEditorPage> {
           doc = Document()..insert(0, text);
         }
       } catch (_) {
-        // Malformed JSON — treat as plain text so user doesn't lose content
         doc = Document()..insert(0, text);
       }
     } else {
-      // Legacy plain-text note
       doc = Document()..insert(0, text);
     }
 
@@ -194,7 +166,6 @@ class _NoteEditorPageState extends State<_NoteEditorPage> {
 
       final updated = widget.file.copyWith(
         isBookmarked: _isPinned,
-        notes: 'c:$_bgIdx',
         sizeBytes: deltaJson.length,
       );
       await DatabaseService.instance.updateFile(updated);
@@ -296,7 +267,7 @@ class _NoteEditorPageState extends State<_NoteEditorPage> {
 
   @override
   Widget build(BuildContext context) {
-    final bg = _kBgColors[_bgIdx];
+    final cs = Theme.of(context).colorScheme;
 
     return PopScope(
       canPop: false,
@@ -307,7 +278,7 @@ class _NoteEditorPageState extends State<_NoteEditorPage> {
         if (mounted) nav.pop();
       },
       child: Scaffold(
-        backgroundColor: bg,
+        backgroundColor: cs.surface,
         appBar: AppBar(
           backgroundColor: _kAccent,
           elevation: 0,
@@ -392,66 +363,63 @@ class _NoteEditorPageState extends State<_NoteEditorPage> {
             ? const Center(child: CircularProgressIndicator())
             : Column(
                 children: [
-                  // ── Page background colour picker ─────────────────────
-                  _BgPicker(
-                    selected: _bgIdx,
-                    onSelect: (i) => setState(() {
-                      _bgIdx = i;
-                      _hasChanges = true;
-                    }),
-                  ),
-
-                  // ── Quill toolbar ─────────────────────────────────────
-                  QuillSimpleToolbar(
-                    controller: _quill!,
-                    config: const QuillSimpleToolbarConfig(
-                      multiRowsDisplay: false,
-                      showFontFamily: false,
-                      showFontSize: false,
-                      showCodeBlock: false,
-                      showInlineCode: false,
-                      showSubscript: false,
-                      showSuperscript: false,
-                      showAlignmentButtons: false,
-                      showCenterAlignment: false,
-                      showLeftAlignment: false,
-                      showRightAlignment: false,
-                      showJustifyAlignment: false,
-                      showSearchButton: false,
-                      showColorButton: false,
-                      showBackgroundColorButton: false,
-                      showLink: true,
-                      showClearFormat: true,
-                      showBoldButton: true,
-                      showItalicButton: true,
-                      showUnderLineButton: true,
-                      showStrikeThrough: true,
-                      showListBullets: true,
-                      showListNumbers: true,
-                      showIndent: true,
-                      showHeaderStyle: true,
-                      showQuote: true,
-                      showUndo: true,
-                      showRedo: true,
-                      showDirection: false,
-                      showDividers: true,
+                  // ── Single-row toolbar (horizontal scroll) ───────────
+                  Container(
+                    color: cs.surface,
+                    child: QuillSimpleToolbar(
+                      controller: _quill!,
+                      config: const QuillSimpleToolbarConfig(
+                        multiRowsDisplay: false,
+                        toolbarSize: 36,
+                        showFontFamily: false,
+                        showFontSize: false,
+                        showCodeBlock: false,
+                        showInlineCode: false,
+                        showSubscript: false,
+                        showSuperscript: false,
+                        showAlignmentButtons: false,
+                        showCenterAlignment: false,
+                        showLeftAlignment: false,
+                        showRightAlignment: false,
+                        showJustifyAlignment: false,
+                        showSearchButton: false,
+                        showColorButton: false,
+                        showBackgroundColorButton: false,
+                        showLink: true,
+                        showClearFormat: true,
+                        showBoldButton: true,
+                        showItalicButton: true,
+                        showUnderLineButton: true,
+                        showStrikeThrough: true,
+                        showListBullets: true,
+                        showListNumbers: true,
+                        showListCheck: false,
+                        showIndent: true,
+                        showHeaderStyle: true,
+                        showQuote: true,
+                        showUndo: true,
+                        showRedo: true,
+                        showDirection: false,
+                        showDividers: false,
+                      ),
                     ),
                   ),
 
-                  // ── Inline highlight strip ───────────────────────────
-                  SizedBox(
-                    height: 44,
+                  // ── Compact 8-tint highlight strip ──────────────────
+                  Container(
+                    color: cs.surfaceContainerHighest
+                        .withValues(alpha: 0.5),
+                    height: 36,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
                       itemCount: _kHighlights.length,
                       itemBuilder: (_, i) {
                         final c = _kHighlights[i];
                         final isClear = i == 0;
                         return Padding(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 4, vertical: 4),
+                              horizontal: 4, vertical: 6),
                           child: Tooltip(
                             message:
                                 isClear ? 'Clear highlight' : 'Highlight',
@@ -459,19 +427,20 @@ class _NoteEditorPageState extends State<_NoteEditorPage> {
                               onTap: () =>
                                   _applyHighlight(c, clear: isClear),
                               child: Container(
-                                width: 32,
-                                height: 32,
+                                width: 24,
+                                height: 24,
                                 decoration: BoxDecoration(
                                   color: c,
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(6),
                                   border: Border.all(
-                                    color: Colors.black
-                                        .withValues(alpha: 0.15),
+                                    color: cs.onSurfaceVariant
+                                        .withValues(alpha: 0.25),
                                   ),
                                 ),
                                 child: isClear
-                                    ? const Icon(Icons.format_color_reset,
-                                        size: 16, color: Colors.black54)
+                                    ? Icon(Icons.format_color_reset,
+                                        size: 12,
+                                        color: cs.onSurfaceVariant)
                                     : null,
                               ),
                             ),
@@ -481,81 +450,46 @@ class _NoteEditorPageState extends State<_NoteEditorPage> {
                     ),
                   ),
 
-                  Divider(height: 1, color: Colors.black.withValues(alpha: 0.1)),
+                  Divider(
+                    height: 1,
+                    color: cs.outlineVariant.withValues(alpha: 0.5),
+                  ),
 
-                  // ── Editor ────────────────────────────────────────────
+                  // ── Editor body — takes all remaining space ──────────
                   Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Container(
+                      color: cs.surface,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
                       child: QuillEditor.basic(
                         controller: _quill!,
                         focusNode: _editorFocus,
                         scrollController: _editorScroll,
-                        config: const QuillEditorConfig(
+                        config: QuillEditorConfig(
                           placeholder: 'Start writing…',
-                          padding: EdgeInsets.symmetric(vertical: 14),
+                          padding: const EdgeInsets.all(8),
                           autoFocus: true,
                           expands: false,
                           scrollable: true,
+                          customStyles: DefaultStyles(
+                            paragraph: DefaultTextBlockStyle(
+                              TextStyle(
+                                fontSize: 16,
+                                height: 1.6,
+                                color: cs.onSurface,
+                              ),
+                              const HorizontalSpacing(0, 0),
+                              const VerticalSpacing(6, 6),
+                              const VerticalSpacing(0, 0),
+                              null,
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ],
               ),
-      ),
-    );
-  }
-}
-
-// ─── Page-background colour picker strip ──────────────────────────────────────
-
-class _BgPicker extends StatelessWidget {
-  const _BgPicker({required this.selected, required this.onSelect});
-  final int selected;
-  final ValueChanged<int> onSelect;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 48,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-        itemCount: _kBgColors.length,
-        itemBuilder: (ctx, i) {
-          final active = i == selected;
-          return GestureDetector(
-            onTap: () => onSelect(i),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              width: 30,
-              height: 30,
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              decoration: BoxDecoration(
-                color: _kBgColors[i],
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: active ? _kAccent : Colors.grey.shade400,
-                  width: active ? 2.5 : 1.0,
-                ),
-                boxShadow: active
-                    ? [
-                        BoxShadow(
-                          color: _kAccent.withValues(alpha: 0.35),
-                          blurRadius: 6,
-                          spreadRadius: 1,
-                        ),
-                      ]
-                    : null,
-              ),
-              child: active
-                  ? Icon(Icons.check_rounded,
-                      size: 15, color: _kAccent.withValues(alpha: 0.8))
-                  : null,
-            ),
-          );
-        },
       ),
     );
   }

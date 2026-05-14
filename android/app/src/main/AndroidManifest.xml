@@ -2,20 +2,18 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <!-- ── Storage permissions ───────────────────────────────────────────── -->
-    <!-- Android ≤ 9 (API 28): classic write permission -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="29"/>
-    <!-- Android ≤ 12 (API 32): classic read permission -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
-        android:maxSdkVersion="32"/>
-    <!-- Android 13+ (API 33+): granular media permissions -->
+    <!-- MedShelf uses scoped storage on Android 11+ — files live in the
+         app's private external folder (Android/data/com.medshelf.medshelf/
+         files/MedShelf/). No MANAGE_EXTERNAL_STORAGE is required: file
+         imports flow through the Storage Access Framework (file_picker)
+         which grants per-file access without a manifest permission.
+
+         On Android 13+ the granular media permissions below let the
+         system file picker show photos/videos when the user taps
+         Import. They are NOT required for MedShelf to launch or work. -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
-    <!-- All-files access — needed to write to /storage/emulated/0/MedShelf/ -->
-    <uses-permission
-        android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
-        tools:ignore="ScopedStorage"/>
 
     <!-- ── Camera (only for the document scanner) ────────────────────── -->
     <!-- Used solely by the in-app "Scan Document" feature, which calls

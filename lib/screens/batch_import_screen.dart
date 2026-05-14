@@ -15,8 +15,17 @@ import '../widgets/file_thumbnail.dart';
 enum BatchMode { files, folder }
 
 class BatchImportScreen extends StatefulWidget {
-  const BatchImportScreen({super.key, required this.mode});
+  const BatchImportScreen({
+    super.key,
+    required this.mode,
+    this.preloadedPaths,
+  });
   final BatchMode mode;
+
+  /// If provided, the file picker is skipped on mount and these paths
+  /// are pre-populated. Used by the share-intent flow when the user
+  /// shares multiple files into MedShelf at once.
+  final List<String>? preloadedPaths;
 
   @override
   State<BatchImportScreen> createState() => _BatchImportScreenState();
@@ -32,7 +41,13 @@ class _BatchImportScreenState extends State<BatchImportScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _pick());
+    if (widget.preloadedPaths != null && widget.preloadedPaths!.isNotEmpty) {
+      _items = widget.preloadedPaths!
+          .map((p) => _ImportItem(path: p))
+          .toList();
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _pick());
+    }
   }
 
   Future<void> _pick() async {

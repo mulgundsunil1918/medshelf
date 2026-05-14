@@ -32,8 +32,8 @@ android {
         applicationId = "com.medshelf.medshelf"
         minSdk = flutter.minSdkVersion
         targetSdk = 35
-        versionCode = 15
-        versionName = "1.1.4"
+        versionCode = 17
+        versionName = "1.2.0"
     }
 
     signingConfigs {

@@ -12,6 +12,7 @@ import '../services/file_notifier.dart';
 import '../services/file_storage_service.dart';
 import '../services/topic_service.dart';
 import '../utils/file_type_icon.dart';
+import '../utils/note_text.dart';
 import '../utils/share_helper.dart';
 import '../widgets/file_thumbnail.dart';
 import '../widgets/edit_topic_sheet.dart';
@@ -1194,16 +1195,20 @@ class _FileTile extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    if (file.description?.isNotEmpty == true) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        file.description!,
-                        style: tt.labelSmall
-                            ?.copyWith(color: cs.onSurfaceVariant),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
+                    Builder(builder: (_) {
+                      final preview = NoteText.snippet(file.description);
+                      if (preview.isEmpty) return const SizedBox.shrink();
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Text(
+                          preview,
+                          style: tt.labelSmall
+                              ?.copyWith(color: cs.onSurfaceVariant),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
+                    }),
                     const SizedBox(height: 2),
                     Text(
                       '${file.formattedDate} · ${file.formattedSize}',

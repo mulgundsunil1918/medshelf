@@ -26,24 +26,16 @@ class FileStorageService {
       return dir.path;
     }
 
-    // Android: try to write to /storage/emulated/0/MedShelf so the user
-    // can see the folder via any Files app. Falls back to the app's
-    // private external folder if MANAGE_EXTERNAL_STORAGE was denied.
-    try {
-      final extDir = await getExternalStorageDirectory();
-      if (extDir != null) {
-        final rootPath = extDir.path.split('Android')[0]; // ends with '/'
-        final medshelfDir = Directory('${rootPath}MedShelf');
-        if (!await medshelfDir.exists()) {
-          await medshelfDir.create(recursive: true);
-        }
-        return medshelfDir.path;
-      }
-    } catch (_) {}
-
-    final fallback = await getExternalStorageDirectory() ??
-        await getApplicationDocumentsDirectory();
-    final dir = Directory(p.join(fallback.path, 'MedShelf'));
+    // Android: use scoped external storage —
+    //   /storage/emulated/0/Android/data/com.medshelf.medshelf/files/MedShelf
+    // Requires NO permission. Visible in the system Files app under
+    // Android > data > com.medshelf.medshelf > files > MedShelf. We
+    // intentionally do NOT navigate up to /storage/emulated/0/MedShelf
+    // because that would require MANAGE_EXTERNAL_STORAGE, which Google
+    // Play rejects for organisation apps like MedShelf.
+    final extDir = await getExternalStorageDirectory();
+    final base = extDir ?? await getApplicationDocumentsDirectory();
+    final dir = Directory(p.join(base.path, 'MedShelf'));
     if (!await dir.exists()) await dir.create(recursive: true);
     return dir.path;
   }

@@ -2,15 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/file_notifier.dart';
-import '../services/permission_service.dart';
 import '../utils/constants.dart';
 import '../widgets/save_file_sheet.dart';
 import '../widgets/support_popup.dart';
+import 'batch_import_screen.dart';
 import 'home_screen.dart';
 import 'library_screen.dart';
 import 'search_screen.dart';
@@ -77,59 +76,24 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
       if (mounted) _maybeShowSupportPopup();
     });
 
-    // Request storage permission after the first frame
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      _requestStoragePermission();
-    });
-
-    // Listen for files shared while app is running
+    // Listen for files shared while app is already running.
     _intentSub = ReceiveSharingIntent.instance
         .getMediaStream()
         .listen(_handleSharedFiles);
 
-    // Handle files shared when app was cold-started
-    ReceiveSharingIntent.instance.getInitialMedia().then((files) {
-      if (files.isNotEmpty) {
-        _handleSharedFiles(files);
-      }
+    // Cold-start sequence — no storage permission flow required (scoped
+    // storage + SAF cover everything MedShelf does). We jump straight to
+    // checking for any files the app was launched with via Share.
+    SchedulerBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      final files =
+          await ReceiveSharingIntent.instance.getInitialMedia();
+      if (files.isEmpty || !mounted) return;
+      // Small delay so the IndexedStack first paint is settled before
+      // we push a modal route on top of it.
+      await Future.delayed(const Duration(milliseconds: 250));
+      if (mounted) _handleSharedFiles(files);
     });
-  }
-
-  Future<void> _requestStoragePermission() async {
-    final granted =
-        await PermissionService.instance.requestStoragePermission();
-    if (!granted && mounted) {
-      _showPermissionDeniedDialog();
-    }
-  }
-
-  void _showPermissionDeniedDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Storage Permission Needed'),
-        content: const Text(
-          'MedShelf needs storage permission to save your files to '
-          'Internal Storage so you can find them in your Files app '
-          'under Internal Storage › MedShelf.\n\n'
-          'Please grant "All files access" in App Settings.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Not Now'),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              openAppSettings();
-            },
-            child: const Text('Open Settings'),
-          ),
-        ],
-      ),
-    );
   }
 
   // ── WidgetsBindingObserver ────────────────────────────────────────────────
@@ -174,23 +138,47 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
 
   void _handleSharedFiles(List<SharedMediaFile> files) {
     if (files.isEmpty) return;
-    final path = files.first.path;
+    final paths = files
+        .map((f) => f.path)
+        .where((p) => p.isNotEmpty)
+        .toList(growable: false);
+    if (paths.isEmpty) return;
     ReceiveSharingIntent.instance.reset();
-    // Defer showing the sheet until after the current frame
+    // Defer routing until after the current frame so the IndexedStack
+    // is settled before we push a modal / route on top.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
-      final saved = await showModalBottomSheet<bool>(
-        context: context,
-        isScrollControlled: true,
-        shape: const RoundedRectangleBorder(
-          borderRadius:
-              BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        builder: (_) => SaveFileSheet(sourcePath: path),
-      );
-      if (saved == true && mounted) {
-        FileNotifier.instance.notifyFileChanged();
-        setState(() {});
+      if (paths.length == 1) {
+        // Single file — fast path: bottom-sheet save dialog.
+        final saved = await showModalBottomSheet<bool>(
+          context: context,
+          isScrollControlled: true,
+          shape: const RoundedRectangleBorder(
+            borderRadius:
+                BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          builder: (_) => SaveFileSheet(sourcePath: paths.first),
+        );
+        if (saved == true && mounted) {
+          FileNotifier.instance.notifyFileChanged();
+          setState(() {});
+        }
+      } else {
+        // Multi-file share — push the BatchImportScreen with the paths
+        // already loaded so the user can pick a destination once and
+        // import the whole set in one go.
+        await Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => BatchImportScreen(
+              mode: BatchMode.files,
+              preloadedPaths: paths,
+            ),
+          ),
+        );
+        if (mounted) {
+          FileNotifier.instance.notifyFileChanged();
+          setState(() {});
+        }
       }
     });
   }

@@ -12,6 +12,7 @@ import '../services/database_service.dart';
 import '../services/file_storage_service.dart';
 import '../services/topic_service.dart';
 import '../utils/app_colors.dart';
+import '../utils/note_text.dart';
 import '../utils/share_helper.dart';
 import '../widgets/topic_selector_widget.dart';
 import 'note_viewer_screen.dart';
@@ -87,7 +88,11 @@ class _FilePropertiesScreenState extends State<FilePropertiesScreen> {
   }
 
   Future<void> _showEditDescriptionDialog() async {
-    final ctrl = TextEditingController(text: _file.description ?? '');
+    // Show plain-text snippet — never let raw Quill Delta JSON leak into
+    // the edit field even if a legacy note had it stored in description.
+    final ctrl = TextEditingController(
+      text: NoteText.snippet(_file.description),
+    );
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -471,26 +476,28 @@ class _FilePropertiesScreenState extends State<FilePropertiesScreen> {
                     ),
                     _divider(cs),
 
-                    // Description
-                    _DetailRow(
-                      emoji: '📝',
-                      label: 'Description / Notes',
-                      value: (_file.description?.isNotEmpty == true)
-                          ? _file.description!
-                          : 'Tap to add notes...',
-                      valueColor:
-                          (_file.description?.isNotEmpty == true)
-                              ? null
-                              : cs.onSurfaceVariant,
-                      onTap: _showEditDescriptionDialog,
-                      trailing: IconButton(
-                        icon: const Icon(Icons.edit_rounded, size: 18),
-                        onPressed: _showEditDescriptionDialog,
-                        tooltip: 'Edit description',
-                      ),
-                      cs: cs,
-                      tt: tt,
-                    ),
+                    // Description (decoded from Quill Delta if note)
+                    Builder(builder: (_) {
+                      final preview = NoteText.snippet(_file.description);
+                      return _DetailRow(
+                        emoji: '📝',
+                        label: 'Description / Notes',
+                        value: preview.isNotEmpty
+                            ? preview
+                            : 'Tap to add notes...',
+                        valueColor: preview.isNotEmpty
+                            ? null
+                            : cs.onSurfaceVariant,
+                        onTap: _showEditDescriptionDialog,
+                        trailing: IconButton(
+                          icon: const Icon(Icons.edit_rounded, size: 18),
+                          onPressed: _showEditDescriptionDialog,
+                          tooltip: 'Edit description',
+                        ),
+                        cs: cs,
+                        tt: tt,
+                      );
+                    }),
                   ],
                 ),
               ),
