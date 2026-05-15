@@ -266,7 +266,11 @@ class _SlideShell extends StatelessWidget {
         children: [
           Expanded(
             flex: 45,
-            child: Center(child: illustration),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.center,
+              child: illustration,
+            ),
           ),
           Expanded(
             flex: 55,
