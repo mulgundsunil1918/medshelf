@@ -15,11 +15,11 @@ const _darkCard = Color(0xFF142C32);
 
 // ─── Typography ───────────────────────────────────────────────────────────────
 
-TextTheme _buildTextTheme(TextTheme base) {
+TextTheme _buildTextTheme(TextTheme base, ColorScheme cs) {
   final display = GoogleFonts.nunitoTextTheme(base);
   final body = GoogleFonts.dmSansTextTheme(base);
 
-  return base.copyWith(
+  final merged = base.copyWith(
     displayLarge: display.displayLarge,
     displayMedium: display.displayMedium,
     displaySmall: display.displaySmall,
@@ -35,6 +35,15 @@ TextTheme _buildTextTheme(TextTheme base) {
     labelLarge: body.labelLarge,
     labelMedium: body.labelMedium,
     labelSmall: body.labelSmall,
+  );
+
+  // GoogleFonts.xxxTextTheme() can produce null-color styles in M3 — those
+  // rely on DefaultTextStyle inheritance which breaks in some widget trees.
+  // Force explicit colors so text is always visible regardless of context.
+  return merged.apply(
+    bodyColor: cs.onSurface,
+    displayColor: cs.onSurface,
+    decorationColor: cs.onSurface,
   );
 }
 
@@ -155,7 +164,7 @@ ThemeData get lightTheme {
   );
 
   return base.copyWith(
-    textTheme: _buildTextTheme(base.textTheme),
+    textTheme: _buildTextTheme(base.textTheme, cs),
     appBarTheme: _appBarThemeLight(),
     cardTheme: _cardThemeLight(),
     filledButtonTheme: _filledButtonTheme(),
@@ -183,7 +192,7 @@ ThemeData get darkTheme {
   );
 
   return base.copyWith(
-    textTheme: _buildTextTheme(base.textTheme),
+    textTheme: _buildTextTheme(base.textTheme, cs),
     appBarTheme: _appBarThemeDark(),
     cardTheme: _cardThemeDark(),
     filledButtonTheme: _filledButtonTheme(),
