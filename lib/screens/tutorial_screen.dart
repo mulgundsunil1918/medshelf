@@ -630,7 +630,11 @@ class _Slide3 extends StatelessWidget {
       body: "Files go into Specialty → Topic → Subtopic folders — exactly the way "
           "medical knowledge is structured. Every folder is customisable.",
       subtext: "You set it up once. MedShelf remembers everything.",
-      illustration: Container(
+      // SizedBox bounds the width so Expanded inside _FolderRow/_FileRow
+      // works correctly when FittedBox passes unconstrained width down.
+      illustration: SizedBox(
+        width: 280,
+        child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.12),
@@ -682,6 +686,7 @@ class _Slide3 extends StatelessWidget {
           ],
         ),
       ),
+      ), // closes SizedBox
     );
   }
 }
@@ -829,61 +834,66 @@ class _Slide4 extends StatelessWidget {
           ),
         ),
       ),
-      illustration: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Fake search bar
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.search, color: Colors.white, size: 18),
-                  const SizedBox(width: 8),
-                  Text(
-                    'NRP guidelines',
-                    style: GoogleFonts.nunito(
-                      fontSize: 14,
-                      fontStyle: FontStyle.italic,
-                      color: Colors.white,
+      // SizedBox bounds the width so Expanded inside _SearchTile's Row
+      // works correctly when FittedBox passes unconstrained width down.
+      illustration: SizedBox(
+        width: 280,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Fake search bar
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.search, color: Colors.white, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      'NRP guidelines',
+                      style: GoogleFonts.nunito(
+                        fontSize: 14,
+                        fontStyle: FontStyle.italic,
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-            _SearchTile(
-              circleColor: Colors.red,
-              fileIcon: Icons.picture_as_pdf,
-              fileName: 'NRP_Guidelines_2024.pdf',
-              specialty: '🫁 Pediatrics',
-              delay: 200,
-            ),
-            _SearchTile(
-              circleColor: Colors.orange,
-              fileIcon: Icons.slideshow,
-              fileName: 'Ventilation_Slides.pptx',
-              specialty: '🫁 Pediatrics',
-              delay: 400,
-            ),
-            _SearchTile(
-              circleColor: Colors.blue,
-              fileIcon: Icons.description,
-              fileName: 'Sepsis_Protocol.docx',
-              specialty: '🫀 General Medicine',
-              delay: 600,
-            ),
-          ],
+              const SizedBox(height: 12),
+              _SearchTile(
+                circleColor: Colors.red,
+                fileIcon: Icons.picture_as_pdf,
+                fileName: 'NRP_Guidelines_2024.pdf',
+                specialty: '🫁 Pediatrics',
+                delay: 200,
+              ),
+              _SearchTile(
+                circleColor: Colors.orange,
+                fileIcon: Icons.slideshow,
+                fileName: 'Ventilation_Slides.pptx',
+                specialty: '🫁 Pediatrics',
+                delay: 400,
+              ),
+              _SearchTile(
+                circleColor: Colors.blue,
+                fileIcon: Icons.description,
+                fileName: 'Sepsis_Protocol.docx',
+                specialty: '🫀 General Medicine',
+                delay: 600,
+              ),
+            ],
+          ),
         ),
       ),
     );
