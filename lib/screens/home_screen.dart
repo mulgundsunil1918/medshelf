@@ -116,7 +116,7 @@ class HomeScreenState extends State<HomeScreen> {
         ),
         // "Find on Device" pill is Android-only — skip the matching step
         // on iOS so the spotlight has something real to point at.
-        if (!Platform.isIOS)
+        if (Platform.isAndroid)
           CoachStep(
             targetKey: _kSearchBtn,
             icon: Icons.phone_android_rounded,
@@ -401,7 +401,7 @@ class HomeScreenState extends State<HomeScreen> {
                               // forbids reading other apps' data, so we hide
                               // this pill entirely instead of showing a
                               // useless button that crashes when tapped.
-                              if (!Platform.isIOS) ...[
+                              if (Platform.isAndroid) ...[
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: _ActionPill(

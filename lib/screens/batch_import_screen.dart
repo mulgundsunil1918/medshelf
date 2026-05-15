@@ -111,8 +111,9 @@ class _BatchImportScreenState extends State<BatchImportScreen> {
         );
         await DatabaseService.instance.saveFile(medFile);
       } catch (_) {
-        setState(() => _failed++);
+        if (mounted) setState(() => _failed++);
       }
+      if (!mounted) break;
       setState(() => _progress++);
     }
 

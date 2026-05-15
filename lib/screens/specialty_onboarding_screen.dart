@@ -159,6 +159,7 @@ class _SpecialtyOnboardingScreenState extends State<SpecialtyOnboardingScreen> {
     final total = selectedList.length;
 
     for (int i = 0; i < total; i++) {
+      if (!mounted) return;
       final specialtyKey = selectedList[i];
       final specialtyName = extractName(specialtyKey);
       final specialtyEmoji = extractEmoji(specialtyKey);
@@ -180,6 +181,7 @@ class _SpecialtyOnboardingScreenState extends State<SpecialtyOnboardingScreen> {
         );
       }
 
+      if (!mounted) return;
       setState(() => _progress = (i + 1) / total);
     }
 
