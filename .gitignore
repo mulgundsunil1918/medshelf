@@ -48,3 +48,6 @@ app.*.map.json
 android/key.properties
 android/app/*.jks
 keystore_base64.txt
+
+# Graphify output — generated artifact, not source
+graphify-out/
