@@ -50,13 +50,14 @@ class _TutorialScreenState extends State<TutorialScreen> {
   }
 
   // Called by the Skip button on slides 1–3.
-  // Does NOT mark the tutorial as seen — the user must reach the final
-  // slide and tap the CTA for that to happen.
+  // Marks the tutorial as seen so it never re-shows on the next launch,
+  // even if the user didn't reach the final slide.
   Future<void> _skip() async {
     if (widget.fromSettings) {
       if (mounted) Navigator.of(context).pop();
       return;
     }
+    await OnboardingService.instance.markTutorialSeen();
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(

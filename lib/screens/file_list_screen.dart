@@ -235,7 +235,10 @@ class _FileListScreenState extends State<FileListScreen>
     );
 
     // Ask if user wants to add another sub-subfolder inside the new one
-    final newTopic = context.read<TopicService>().flatTopics.lastWhere(
+    // Use cached `ts` — calling context.read() here would race with the
+    // notifyListeners() that addTopic() already fired, causing
+    // _dependents.isEmpty assertion crash.
+    final newTopic = ts.flatTopics.lastWhere(
           (t) => t.name == created.name && t.parentId == created.parentId,
           orElse: () => created,
         );

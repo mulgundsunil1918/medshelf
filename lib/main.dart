@@ -47,7 +47,7 @@ Future<void> _handleOnboardingReset() async {
 
   if (savedBuild != currentBuild) {
     await prefs.remove('has_seen_tutorial');
-    await prefs.remove('has_completed_onboarding');
+    await prefs.remove('hasCompletedSpecialtySetup'); // real key in OnboardingService
     // Re-show the home-screen coach marks so users see the new
     // Scan / Share buttons after upgrade.
     await prefs.remove('has_seen_coach_marks');
