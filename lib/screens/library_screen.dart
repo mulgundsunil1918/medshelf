@@ -1073,9 +1073,11 @@ class _AddTopicSheetState extends State<_AddTopicSheet> {
   Future<void> _save() async {
     final name = _nameCtrl.text.trim();
     if (name.isEmpty) return;
+    // Capture ts BEFORE setState — calling Provider.of after setState
+    // races with the scheduled rebuild and causes _dependents.isEmpty crash.
+    final ts = context.read<TopicService>();
     setState(() => _saving = true);
     try {
-      final ts = Provider.of<TopicService>(context, listen: false);
       await ts.addTopic(
           name: name, parentId: _parent?.id, emoji: _emoji);
       if (mounted) {

@@ -456,9 +456,10 @@ class _NewFolderSheetState extends State<_NewFolderSheet> {
   Future<void> _create() async {
     final name = _nameCtrl.text.trim();
     if (name.isEmpty) return;
+    // Capture ts BEFORE setState to avoid _dependents.isEmpty crash
+    final ts = context.read<TopicService>();
     setState(() => _saving = true);
     try {
-      final ts = Provider.of<TopicService>(context, listen: false);
       final newTopic = await ts.addTopic(
         name: name,
         emoji: _emoji,
@@ -620,9 +621,10 @@ class _NewChildSheetState extends State<_NewChildSheet> {
   Future<void> _create() async {
     final name = _nameCtrl.text.trim();
     if (name.isEmpty || _selectedParent == null) return;
+    // Capture ts BEFORE setState to avoid _dependents.isEmpty crash
+    final ts = context.read<TopicService>();
     setState(() => _saving = true);
     try {
-      final ts = Provider.of<TopicService>(context, listen: false);
       final newTopic = await ts.addTopic(
         name: name,
         emoji: _emoji,
