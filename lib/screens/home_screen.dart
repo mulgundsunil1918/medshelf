@@ -984,7 +984,7 @@ class _TopicRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 80,
+      height: 90,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: topics.length,

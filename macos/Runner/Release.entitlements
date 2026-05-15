@@ -6,5 +6,8 @@
 	<true/>
 	<key>com.apple.security.network.client</key>
 	<true/>
+	<!-- Allow read/write access to files the user picks via NSOpenPanel -->
+	<key>com.apple.security.files.user-selected.read-write</key>
+	<true/>
 </dict>
 </plist>
