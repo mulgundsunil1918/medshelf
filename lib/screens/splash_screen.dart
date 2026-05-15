@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
 import '../services/onboarding_service.dart';
 import 'main_shell.dart';
@@ -103,6 +104,18 @@ class _SplashScreenState extends State<SplashScreen>
 
   Future<void> _navigate() async {
     final svc = OnboardingService.instance;
+
+    // If the app was opened via a Share sheet, jump straight to MainShell
+    // so the shared file is handled immediately. Onboarding would block the
+    // user from ever seeing the "Save to…" dialog, and the intent would be
+    // lost. MainShell already calls getInitialMedia() in its initState.
+    final sharedFiles =
+        await ReceiveSharingIntent.instance.getInitialMedia();
+    if (!mounted) return;
+    if (sharedFiles.isNotEmpty) {
+      _go(const MainShell());
+      return;
+    }
 
     final tutorial   = await svc.hasSeenTutorial();
     final onboarding = await svc.hasCompletedOnboarding();
