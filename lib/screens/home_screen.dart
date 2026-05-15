@@ -125,15 +125,17 @@ class HomeScreenState extends State<HomeScreen> {
                 'MedShelf can scan WhatsApp, Telegram, Downloads and more — '
                 'finding all your scattered medical files in seconds.',
           ),
-        CoachStep(
-          targetKey: _kScanBtn,
-          icon: Icons.document_scanner_rounded,
-          title: 'Scan Documents 📷',
-          description:
-              'Snap photos of paper notes, prescriptions or printouts and '
-              'MedShelf turns them into clean PDFs — all on-device, '
-              'nothing uploaded.',
-        ),
+        // Scan is mobile-only (VisionKit on iOS, ML Kit on Android)
+        if (!Platform.isMacOS)
+          CoachStep(
+            targetKey: _kScanBtn,
+            icon: Icons.document_scanner_rounded,
+            title: 'Scan Documents 📷',
+            description:
+                'Snap photos of paper notes, prescriptions or printouts and '
+                'MedShelf turns them into clean PDFs — all on-device, '
+                'nothing uploaded.',
+          ),
         CoachStep(
           targetKey: _kQuickNote,
           icon: Icons.edit_note_rounded,
@@ -417,15 +419,19 @@ class HomeScreenState extends State<HomeScreen> {
                                   ),
                                 ),
                               ],
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: _ActionPill(
-                                  globalKey: _kScanBtn,
-                                  icon: Icons.document_scanner_rounded,
-                                  label: 'Scan',
-                                  onTap: _scanCamera,
+                              // Scan uses VisionKit (iOS) / ML Kit (Android)
+                              // — no macOS support, hide the pill there
+                              if (!Platform.isMacOS) ...[
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: _ActionPill(
+                                    globalKey: _kScanBtn,
+                                    icon: Icons.document_scanner_rounded,
+                                    label: 'Scan',
+                                    onTap: _scanCamera,
+                                  ),
                                 ),
-                              ),
+                              ],
                             ],
                           ),
 
