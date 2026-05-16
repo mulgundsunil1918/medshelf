@@ -7,6 +7,21 @@
 	<key>FLTEnableImpeller</key>
 	<false/>
 
+	<!-- ─── Share Extension URL scheme ─────────────────────────────── -->
+	<!-- receive_sharing_intent redirects from the Share Extension back
+	     into MedShelf via this custom scheme. -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>ShareMedia-$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+			</array>
+		</dict>
+	</array>
+
 	<!-- ─── Standard Flutter / app metadata ────────────────────────── -->
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>

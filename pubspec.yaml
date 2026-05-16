@@ -142,3 +142,6 @@ flutter_launcher_icons:
   adaptive_icon_background: "#006B74"
   adaptive_icon_foreground: "assets/icon/app_icon.jpg"
   remove_alpha_ios: true
+
+# ── Dependency overrides ───────────────────────────────────────────────────────
+# Force newer objective_c to fix iOS 26.5 simulator dylib path bug

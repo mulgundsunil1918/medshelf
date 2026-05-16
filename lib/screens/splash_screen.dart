@@ -109,13 +109,19 @@ class _SplashScreenState extends State<SplashScreen>
     // so the shared file is handled immediately. Onboarding would block the
     // user from ever seeing the "Save to…" dialog, and the intent would be
     // lost. MainShell already calls getInitialMedia() in its initState.
-    final sharedFiles =
-        await ReceiveSharingIntent.instance.getInitialMedia();
-    if (!mounted) return;
-    if (sharedFiles.isNotEmpty) {
-      _go(const MainShell());
-      return;
+    // Wrapped in try-catch: objective_c.dylib fails on some simulator runtimes.
+    try {
+      final sharedFiles =
+          await ReceiveSharingIntent.instance.getInitialMedia();
+      if (!mounted) return;
+      if (sharedFiles.isNotEmpty) {
+        _go(const MainShell());
+        return;
+      }
+    } catch (_) {
+      // Plugin unavailable (e.g. simulator runtime mismatch) — treat as no share intent
     }
+    if (!mounted) return;
 
     final tutorial   = await svc.hasSeenTutorial();
     final onboarding = await svc.hasCompletedOnboarding();

@@ -571,22 +571,53 @@ class LibraryScreenState extends State<LibraryScreen> {
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(12, 0, 12, 32),
       children: [
-        // Hierarchy legend
+        // Hierarchy legend + customization tip
         Container(
-          margin: const EdgeInsets.only(top: 4, bottom: 2),
-          padding:
-              const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          margin: const EdgeInsets.only(top: 8, bottom: 4),
+          padding: const EdgeInsets.symmetric(
+              horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
-            color:        cs.surfaceContainerHighest.withAlpha(120),
-            borderRadius: BorderRadius.circular(8),
+            color:        cs.primaryContainer.withAlpha(110),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: cs.primary.withAlpha(50),
+            ),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                '🏥 Specialty  →  📁 Topic  →  📂 Subtopic',
-                style: tt.labelSmall
-                    ?.copyWith(color: cs.onSurfaceVariant),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '🏥 Specialty  →  📁 Topic  →  📂 Subtopic',
+                    style: tt.labelMedium?.copyWith(
+                      color:      cs.onSurface,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.lightbulb_outline_rounded,
+                      size:  16,
+                      color: cs.primary),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'It\'s your library — create, rename, nest and '
+                      'organise folders however and whichever way works '
+                      'best for you. There are no rules. 📂✨',
+                      style: tt.labelSmall?.copyWith(
+                        color:  cs.onSurfaceVariant,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
