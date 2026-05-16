@@ -12,6 +12,8 @@
 	<dict>
 		<key>com.medshelf.app</key>
 		<string>MedShelf App Store</string>
+		<key>com.medshelf.app.ShareExtension</key>
+		<string>MedShelf Share Extension App Store</string>
 	</dict>
 	<key>uploadSymbols</key>
 	<true/>

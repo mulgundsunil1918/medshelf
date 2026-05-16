@@ -63,6 +63,9 @@
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>MedShelf saves shared documents back to your photo library when you choose to export them.</string>
 
+	<key>NSAppleMusicUsageDescription</key>
+	<string>MedShelf does not access Apple Music. This permission is required by a media-import library used for selecting files from your device.</string>
+
 	<key>NSDocumentsFolderUsageDescription</key>
 	<string>MedShelf reads documents you pick from the Files app to import them into your medical study library.</string>
 
