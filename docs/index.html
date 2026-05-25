@@ -154,6 +154,99 @@
     .problem-card h3 { font-size: 18px; font-weight: 800; color: var(--dark); margin-bottom: 10px; }
     .problem-card p  { font-size: 15px; color: var(--gray); line-height: 1.7; }
 
+    /* ── STORY BLOCK ── */
+    .story-block {
+      margin: 56px 0 48px;
+      background: var(--white);
+      border-radius: 28px;
+      padding: 40px;
+      box-shadow: 0 8px 48px rgba(0,0,0,0.08);
+      border: 1px solid rgba(0,107,116,0.1);
+    }
+    .story-header {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 32px;
+    }
+    .story-icon { font-size: 28px; }
+    .story-label {
+      font-size: 20px; font-weight: 900; color: var(--dark);
+    }
+    .story-steps { display: flex; flex-direction: column; gap: 0; }
+    .story-step { margin-bottom: 8px; }
+    .story-bubble {
+      border-radius: 18px; padding: 16px 20px;
+      margin-bottom: 6px;
+    }
+    .story-bubble.received {
+      background: #e8f5f6; border: 1px solid rgba(0,107,116,0.15);
+      max-width: 600px;
+    }
+    .story-bubble.patient {
+      background: #fff3ee; border: 1px solid rgba(232,131,90,0.2);
+      max-width: 600px;
+    }
+    .story-bubble-meta {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 10px; flex-wrap: wrap; gap: 4px;
+    }
+    .story-who { font-size: 12px; font-weight: 800; color: var(--teal); letter-spacing: 0.3px; }
+    .story-time { font-size: 11px; color: var(--gray); }
+    .story-bubble-content { display: flex; align-items: flex-start; gap: 14px; }
+    .story-file-icon { font-size: 32px; flex-shrink: 0; }
+    .story-file-name { font-size: 14px; font-weight: 800; color: var(--dark); margin-bottom: 4px; }
+    .story-file-size { font-size: 13px; color: var(--gray); }
+    .story-caption {
+      font-size: 13px; color: var(--gray); font-style: italic; padding-left: 4px; margin-bottom: 16px;
+    }
+    .story-arrow {
+      text-align: center; font-size: 14px; font-weight: 800;
+      color: var(--coral); letter-spacing: 1px;
+      padding: 12px 0; margin: 4px 0;
+    }
+    .story-search-chaos {
+      background: #fafafa; border: 1.5px dashed #ddd;
+      border-radius: 16px; padding: 20px 24px;
+      margin: 12px 0 24px; display: flex; flex-direction: column; gap: 10px;
+    }
+    .chaos-step {
+      font-size: 14px; color: #888; padding: 6px 0;
+      border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 8px;
+    }
+    .chaos-step:last-child { border-bottom: none; }
+    .chaos-final { color: var(--coral); font-weight: 700; }
+    .story-resolution {
+      background: linear-gradient(135deg, rgba(0,107,116,0.06), rgba(0,107,116,0.02));
+      border: 1.5px solid rgba(0,107,116,0.2);
+      border-radius: 20px; padding: 24px 28px; margin: 8px 0 28px;
+    }
+    .resolution-label {
+      font-size: 13px; font-weight: 900; color: var(--teal);
+      text-transform: uppercase; letter-spacing: 2px; margin-bottom: 16px;
+    }
+    .resolution-steps { display: flex; flex-direction: column; gap: 12px; }
+    .res-step {
+      display: flex; align-items: flex-start; gap: 14px;
+      font-size: 14px; color: var(--dark); line-height: 1.5;
+    }
+    .res-num {
+      width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+      background: var(--teal); color: white; font-size: 12px; font-weight: 900;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .res-done .res-num { background: #22c55e; }
+    .res-done { font-weight: 700; color: #166534; }
+    .story-roles {
+      display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px;
+    }
+    .role-tag {
+      background: rgba(0,107,116,0.07); color: var(--teal);
+      border: 1px solid rgba(0,107,116,0.15);
+      border-radius: 50px; padding: 6px 16px;
+      font-size: 13px; font-weight: 700;
+    }
+    @media (max-width: 768px) {
+      .story-block { padding: 24px 20px; }
+    }
+
     /* ── SOLUTION ── */
     #solution { background: var(--white); }
     .solution-inner {
@@ -359,13 +452,13 @@
 
 <!-- HERO -->
 <section id="hero">
-  <div class="hero-badge">For Medical Students & Professionals</div>
+  <div class="hero-badge">For Doctors, Nurses &amp; All Medical Professionals</div>
   <h1 class="hero-title"><span class="coral">Med</span>Shelf</h1>
-  <p class="hero-subtitle">Your Medical Library</p>
+  <p class="hero-subtitle">Medical Knowledge, Organised.</p>
   <p class="hero-desc">
-    Stop drowning in scattered PDFs, WhatsApp notes, and Telegram files.
-    MedShelf organizes your entire medical study library — by specialty,
-    by topic, in seconds.
+    Every guideline, protocol, lecture, and reference you receive — PDFs, images, videos —
+    organised by specialty and topic. So the next time you need it,
+    you actually find it. In seconds.
   </p>
   <div class="hero-btns">
     <a href="#cta" class="btn-primary">📱 Download Free — iOS &amp; Android</a>
@@ -381,29 +474,105 @@
 <section id="problem">
   <div class="container">
     <span class="section-label">The Problem</span>
-    <h2 class="section-title">Medical school creates chaos.<br>Your files are everywhere.</h2>
-    <p class="section-sub">Every medical student knows the pain. Study material is scattered across dozens of apps, folders, and chats — and finding anything is a nightmare.</p>
+    <h2 class="section-title">You have the knowledge.<br>You just can't find it.</h2>
+    <p class="section-sub">Whether you're a doctor, nurse, resident, or student — critical medical information reaches you every day. The problem is what happens to it after that.</p>
+
+    <!-- ── NARRATIVE STORY ── -->
+    <div class="story-block">
+      <div class="story-header">
+        <span class="story-icon">📖</span>
+        <span class="story-label">Sound familiar?</span>
+      </div>
+      <div class="story-steps">
+        <div class="story-step">
+          <div class="story-bubble received">
+            <div class="story-bubble-meta">
+              <span class="story-who">🩺 Cardiology WhatsApp Group</span>
+              <span class="story-time">Tuesday, 11:42 PM</span>
+            </div>
+            <div class="story-bubble-content">
+              <span class="story-file-icon">📄</span>
+              <div>
+                <div class="story-file-name">AHA_HypertensionGuidelines_2024.pdf</div>
+                <div class="story-file-size">Dr. Mehta: "Latest AHA BP management guidelines. Must read."</div>
+              </div>
+            </div>
+          </div>
+          <div class="story-caption">You save it. You'll read it properly later.</div>
+        </div>
+
+        <div class="story-arrow">↓ 3 weeks later ↓</div>
+
+        <div class="story-step">
+          <div class="story-bubble patient">
+            <div class="story-bubble-meta">
+              <span class="story-who">🏥 OPD — Patient with resistant hypertension</span>
+            </div>
+            <div class="story-bubble-content" style="display:block">
+              <div style="font-weight:700;margin-bottom:4px">You need that AHA guideline. Now.</div>
+              <div style="opacity:0.75;font-size:13px">What's the new target BP? Which drug class first? There was a table in that PDF…</div>
+            </div>
+          </div>
+          <div class="story-caption">Where is it?</div>
+        </div>
+
+        <div class="story-search-chaos">
+          <div class="chaos-step">📱 WhatsApp → scroll through 400 messages → not found</div>
+          <div class="chaos-step">📂 Downloads → 312 files → which one is it?</div>
+          <div class="chaos-step">🔍 Files app → search "AHA" → nothing</div>
+          <div class="chaos-step">💬 Telegram → maybe I forwarded it here? → no</div>
+          <div class="chaos-step chaos-final">😤 You open Google and find it again from scratch.</div>
+        </div>
+
+        <div class="story-resolution">
+          <div class="resolution-label">With MedShelf</div>
+          <div class="resolution-steps">
+            <div class="res-step">
+              <span class="res-num">1</span>
+              <span>When you get the PDF on WhatsApp — tap Share → MedShelf → save to <strong>Cardiology → Hypertension</strong></span>
+            </div>
+            <div class="res-step">
+              <span class="res-num">2</span>
+              <span>Three weeks later, standing in OPD — open MedShelf → Cardiology → Hypertension</span>
+            </div>
+            <div class="res-step res-done">
+              <span class="res-num">✓</span>
+              <span>There it is. In 4 seconds. Every time.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="story-roles">
+        <div class="role-tag">👨‍⚕️ Cardiologist</div>
+        <div class="role-tag">🧑‍⚕️ General Physician</div>
+        <div class="role-tag">👩‍⚕️ Nurse</div>
+        <div class="role-tag">🎓 Medical Resident</div>
+        <div class="role-tag">📚 MBBS Student</div>
+        <div class="role-tag">🏥 Any Specialty</div>
+      </div>
+    </div>
 
     <div class="problem-grid">
       <div class="problem-card">
         <div class="problem-icon">📱</div>
-        <h3>Files in WhatsApp & Telegram</h3>
-        <p>Professors share slides over WhatsApp. Study groups send PDFs on Telegram. Your study material is buried in chat history, impossible to find when you need it.</p>
+        <h3>Guidelines Lost in WhatsApp</h3>
+        <p>Colleagues share protocols, case studies and guidelines over WhatsApp and Telegram every day. Critical information is buried in chat history — impossible to retrieve when you're with a patient.</p>
       </div>
       <div class="problem-card">
         <div class="problem-icon">🗂️</div>
         <h3>No Organisation System</h3>
-        <p>Downloads folder has 800 files. "Anatomy_final_FINAL_v3.pdf" is somewhere. You spend more time searching than studying.</p>
+        <p>Downloads folder has 800 files. Three versions of the same guideline, none labelled properly. You spend more time searching than actually using the information.</p>
       </div>
       <div class="problem-card">
         <div class="problem-icon">📝</div>
-        <h3>Notes Scattered Everywhere</h3>
-        <p>Quick notes on phone notes app, WhatsApp self-chat, sticky notes, random notebooks — none of it connected to the topic you're studying.</p>
+        <h3>Notes Disconnected from Context</h3>
+        <p>Quick clinical notes on the phone's notes app, WhatsApp self-chat, sticky notes — none connected to the case, specialty or topic they belong to.</p>
       </div>
       <div class="problem-card">
         <div class="problem-icon">⏰</div>
-        <h3>Exam Season Panic</h3>
-        <p>3 days before exams, you realize half your study material is missing, in the wrong place, or buried under hundreds of unrelated files.</p>
+        <h3>Critical Moment, Can't Find It</h3>
+        <p>Standing in front of a patient, you need a drug dosage, a protocol, a reference image — and the file you saved two weeks ago has simply vanished.</p>
       </div>
     </div>
   </div>
@@ -414,7 +583,7 @@
   <div class="container">
     <span class="section-label">The Solution</span>
     <h2 class="section-title">One app. Every medical file.<br>Perfectly organised.</h2>
-    <p class="section-sub">MedShelf is built specifically for medical students — it understands how you study, and organises everything the way your brain does.</p>
+    <p class="section-sub">MedShelf is built for everyone in medicine — doctors, nurses, residents, students. It organises your knowledge the way clinical thinking works: by specialty, by topic.</p>
 
     <div class="solution-inner">
       <div class="solution-phone">
@@ -647,7 +816,7 @@
   <div class="container">
     <span class="section-label">Get Started</span>
     <h2 class="section-title">Your organised medical library<br>is one download away.</h2>
-    <p class="section-sub" style="margin:0 auto 40px">Free to download. No subscription. No ads. Just a clean, fast medical study organizer built by a medical student, for medical students.</p>
+    <p class="section-sub" style="margin:0 auto 40px">Free to download. No subscription. No ads. Just a clean, fast medical knowledge organiser — built by a medico, for everyone in medicine.</p>
 
     <div class="store-badges">
       <a href="https://apps.apple.com/us/app/medshelf-medical-library/id6769939711" target="_blank" rel="noopener">
