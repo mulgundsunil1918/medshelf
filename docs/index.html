@@ -297,9 +297,52 @@
       .steps::before { left: 28px; }
       footer { flex-direction: column; text-align: center; }
     }
+    /* ── LIVE BANNER ── */
+    .live-banner {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      background: linear-gradient(90deg, #E8835A, #D4622F);
+      color: var(--white); text-align: center;
+      padding: 10px 20px;
+      font-size: 14px; font-weight: 700; letter-spacing: 0.3px;
+      display: flex; align-items: center; justify-content: center; gap: 12px;
+    }
+    .live-banner a {
+      color: var(--white); text-decoration: underline; text-underline-offset: 3px;
+      font-weight: 800;
+    }
+    .live-banner .pulse {
+      display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+      background: #fff; animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50%      { opacity: 0.5; transform: scale(1.4); }
+    }
+    body.has-banner nav { top: 40px; }
+    body.has-banner #hero { padding-top: 160px; }
+
+    /* ── STORE BADGES ── */
+    .store-badges {
+      display: flex; gap: 16px; flex-wrap: wrap; justify-content: center;
+      align-items: center; margin-top: 8px;
+    }
+    .store-badge-img {
+      height: 52px; width: auto;
+      transition: transform .2s, filter .2s;
+      border-radius: 10px;
+    }
+    .store-badge-img:hover { transform: translateY(-3px); filter: brightness(0.85); }
+
   </style>
 </head>
-<body>
+<body class="has-banner">
+
+<!-- LIVE BANNER -->
+<div class="live-banner">
+  <span class="pulse"></span>
+  🎉 MedShelf is now LIVE on App Store &amp; Play Store!
+  <a href="#cta">Download Now ↓</a>
+</div>
 
 <!-- NAV -->
 <nav>
@@ -324,7 +367,7 @@
     by topic, in seconds.
   </p>
   <div class="hero-btns">
-    <a href="#cta" class="btn-primary">📱 Get MedShelf Free</a>
+    <a href="#cta" class="btn-primary">📱 Download Free — iOS &amp; Android</a>
     <a href="#how" class="btn-outline">See How It Works</a>
   </div>
   <div class="hero-scroll">
@@ -518,7 +561,7 @@
         <div class="step-num">1</div>
         <div class="step-content">
           <h3>Download & Open MedShelf</h3>
-          <p>Install from the Play Store. On first launch, a quick tutorial shows you the main features — takes about 30 seconds. You pick your specialty focus (MBBS, MD, Nursing etc.) so MedShelf shows the most relevant topics first.</p>
+          <p>Install from the App Store or Play Store. On first launch, a quick tutorial shows you the main features — takes about 30 seconds. You pick your specialty focus (MBBS, MD, Nursing etc.) so MedShelf shows the most relevant topics first.</p>
           <span class="step-tag">Takes 30 seconds</span>
         </div>
       </div>
@@ -605,16 +648,15 @@
     <h2 class="section-title">Your organised medical library<br>is one download away.</h2>
     <p class="section-sub" style="margin:0 auto 40px">Free to download. No subscription. No ads. Just a clean, fast medical study organizer built by a medical student, for medical students.</p>
 
-    <a href="https://play.google.com/store/apps/details?id=com.medshelf.medshelf" class="cta-store-btn">
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M3.18 23.76c.3.17.64.24.99.2l12.87-11.95L13.27 8.2zm17.29-10.7L17.6 11.5l-3.47 3.22 3.47 3.22 2.9-1.58a1.72 1.72 0 0 0 0-3.3zM3.03.28A1.72 1.72 0 0 0 2 1.83v20.34c0 .62.32 1.16.82 1.47l.15.09L16.18 12 3.18.28z"/>
-      </svg>
-      <div class="store-text">
-        <div class="store-sub">GET IT ON</div>
-        <div class="store-name">Google Play</div>
-      </div>
-    </a>
-    <p class="cta-coming">Available now on Android · iOS coming soon</p>
+    <div class="store-badges">
+      <a href="https://apps.apple.com/us/app/medshelf-medical-library/id6769939711" target="_blank" rel="noopener">
+        <img src="badge-appstore-black.png" alt="Download on the App Store" class="store-badge-img">
+      </a>
+      <a href="https://play.google.com/store/apps/details?id=com.medshelf.medshelf" target="_blank" rel="noopener">
+        <img src="badge-playstore-black.png" alt="Get it on Google Play" class="store-badge-img">
+      </a>
+    </div>
+    <p class="cta-coming">Free · No subscription · Available on iOS &amp; Android</p>
   </div>
 </section>
 
