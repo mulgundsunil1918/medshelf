@@ -66,6 +66,7 @@
       content: '';
       position: absolute; inset: 0;
       background: radial-gradient(ellipse at 70% 30%, rgba(232,131,90,0.15) 0%, transparent 60%);
+      pointer-events: none;
     }
     .hero-badge {
       display: inline-block;
@@ -93,7 +94,7 @@
       color: rgba(255,255,255,0.8);
       line-height: 1.7; margin-bottom: 48px;
     }
-    .hero-btns { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+    .hero-btns { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; position: relative; z-index: 1; }
     .btn-primary {
       background: var(--coral); color: var(--white);
       border: none; border-radius: 50px; padding: 16px 36px;
