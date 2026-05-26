@@ -159,92 +159,99 @@
       margin: 56px 0 48px;
       background: var(--white);
       border-radius: 28px;
-      padding: 40px;
+      padding: 32px;
       box-shadow: 0 8px 48px rgba(0,0,0,0.08);
       border: 1px solid rgba(0,107,116,0.1);
+      overflow: hidden;
+      word-break: break-word;
     }
     .story-header {
-      display: flex; align-items: center; gap: 12px; margin-bottom: 32px;
+      display: flex; align-items: center; gap: 12px; margin-bottom: 28px;
     }
-    .story-icon { font-size: 28px; }
-    .story-label {
-      font-size: 20px; font-weight: 900; color: var(--dark);
-    }
-    .story-steps { display: flex; flex-direction: column; gap: 0; }
+    .story-icon { font-size: 24px; flex-shrink: 0; }
+    .story-label { font-size: 18px; font-weight: 900; color: var(--dark); }
+    .story-steps { display: flex; flex-direction: column; }
     .story-step { margin-bottom: 8px; }
     .story-bubble {
-      border-radius: 18px; padding: 16px 20px;
-      margin-bottom: 6px;
+      border-radius: 16px; padding: 14px 16px;
+      margin-bottom: 6px; width: 100%; box-sizing: border-box;
     }
     .story-bubble.received {
       background: #e8f5f6; border: 1px solid rgba(0,107,116,0.15);
-      max-width: 600px;
     }
     .story-bubble.patient {
       background: #fff3ee; border: 1px solid rgba(232,131,90,0.2);
-      max-width: 600px;
     }
     .story-bubble-meta {
-      display: flex; justify-content: space-between; align-items: center;
+      display: flex; justify-content: space-between; align-items: flex-start;
       margin-bottom: 10px; flex-wrap: wrap; gap: 4px;
     }
-    .story-who { font-size: 12px; font-weight: 800; color: var(--teal); letter-spacing: 0.3px; }
-    .story-time { font-size: 11px; color: var(--gray); }
-    .story-bubble-content { display: flex; align-items: flex-start; gap: 14px; }
-    .story-file-icon { font-size: 32px; flex-shrink: 0; }
-    .story-file-name { font-size: 14px; font-weight: 800; color: var(--dark); margin-bottom: 4px; }
-    .story-file-size { font-size: 13px; color: var(--gray); }
+    .story-who { font-size: 11px; font-weight: 800; color: var(--teal); letter-spacing: 0.3px; }
+    .story-time { font-size: 11px; color: var(--gray); white-space: nowrap; }
+    .story-bubble-content { display: flex; align-items: flex-start; gap: 12px; }
+    .story-file-icon { font-size: 28px; flex-shrink: 0; }
+    .story-file-name {
+      font-size: 13px; font-weight: 800; color: var(--dark);
+      margin-bottom: 4px; word-break: break-all;
+    }
+    .story-file-size { font-size: 12px; color: var(--gray); }
     .story-caption {
-      font-size: 13px; color: var(--gray); font-style: italic; padding-left: 4px; margin-bottom: 16px;
+      font-size: 12px; color: var(--gray); font-style: italic;
+      padding-left: 4px; margin-bottom: 14px;
     }
     .story-arrow {
-      text-align: center; font-size: 14px; font-weight: 800;
-      color: var(--coral); letter-spacing: 1px;
-      padding: 12px 0; margin: 4px 0;
+      text-align: center; font-size: 13px; font-weight: 800;
+      color: var(--coral); padding: 10px 0; margin: 2px 0;
     }
     .story-search-chaos {
       background: #fafafa; border: 1.5px dashed #ddd;
-      border-radius: 16px; padding: 20px 24px;
-      margin: 12px 0 24px; display: flex; flex-direction: column; gap: 10px;
+      border-radius: 14px; padding: 16px;
+      margin: 10px 0 20px;
+      display: flex; flex-direction: column; gap: 0;
+      overflow: hidden;
     }
     .chaos-step {
-      font-size: 14px; color: #888; padding: 6px 0;
-      border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 8px;
+      font-size: 13px; color: #888; padding: 8px 0;
+      border-bottom: 1px solid #eee;
+      word-break: break-word; line-height: 1.4;
     }
     .chaos-step:last-child { border-bottom: none; }
     .chaos-final { color: var(--coral); font-weight: 700; }
     .story-resolution {
       background: linear-gradient(135deg, rgba(0,107,116,0.06), rgba(0,107,116,0.02));
       border: 1.5px solid rgba(0,107,116,0.2);
-      border-radius: 20px; padding: 24px 28px; margin: 8px 0 28px;
+      border-radius: 16px; padding: 20px; margin: 8px 0 24px;
+      overflow: hidden;
     }
     .resolution-label {
-      font-size: 13px; font-weight: 900; color: var(--teal);
-      text-transform: uppercase; letter-spacing: 2px; margin-bottom: 16px;
+      font-size: 11px; font-weight: 900; color: var(--teal);
+      text-transform: uppercase; letter-spacing: 2px; margin-bottom: 14px;
     }
     .resolution-steps { display: flex; flex-direction: column; gap: 12px; }
     .res-step {
-      display: flex; align-items: flex-start; gap: 14px;
-      font-size: 14px; color: var(--dark); line-height: 1.5;
+      display: flex; align-items: flex-start; gap: 12px;
+      font-size: 13px; color: var(--dark); line-height: 1.5;
     }
     .res-num {
-      width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
-      background: var(--teal); color: white; font-size: 12px; font-weight: 900;
+      width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+      background: var(--teal); color: white; font-size: 11px; font-weight: 900;
       display: flex; align-items: center; justify-content: center;
     }
     .res-done .res-num { background: #22c55e; }
     .res-done { font-weight: 700; color: #166534; }
     .story-roles {
-      display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px;
+      display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;
     }
     .role-tag {
       background: rgba(0,107,116,0.07); color: var(--teal);
       border: 1px solid rgba(0,107,116,0.15);
-      border-radius: 50px; padding: 6px 16px;
-      font-size: 13px; font-weight: 700;
+      border-radius: 50px; padding: 5px 14px;
+      font-size: 12px; font-weight: 700;
     }
     @media (max-width: 768px) {
-      .story-block { padding: 24px 20px; }
+      .story-block { padding: 20px 16px; border-radius: 20px; }
+      .story-file-name { word-break: break-all; }
+      .story-time { display: none; }
     }
 
     /* ── SOLUTION ── */
