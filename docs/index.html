@@ -394,26 +394,32 @@
     /* ── LIVE BANNER ── */
     .live-banner {
       position: fixed; top: 0; left: 0; right: 0; z-index: 200;
-      background: linear-gradient(90deg, #E8835A, #D4622F);
+      background: linear-gradient(90deg, #0f766e, #0d9488);
       color: var(--white); text-align: center;
-      padding: 10px 20px;
-      font-size: 14px; font-weight: 700; letter-spacing: 0.3px;
-      display: flex; align-items: center; justify-content: center; gap: 12px;
+      padding: 9px 16px;
+      font-size: 13px; font-weight: 700; letter-spacing: 0.2px;
+      display: flex; align-items: center; justify-content: center;
+      gap: 8px; flex-wrap: wrap; line-height: 1.4;
     }
     .live-banner a {
-      color: var(--white); text-decoration: underline; text-underline-offset: 3px;
-      font-weight: 800;
+      color: #ccfbf1; text-decoration: underline; text-underline-offset: 3px;
+      font-weight: 800; white-space: nowrap;
     }
     .live-banner .pulse {
-      display: inline-block; width: 8px; height: 8px; border-radius: 50%;
-      background: #fff; animation: pulse 1.5s infinite;
+      display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+      background: #5eead4; flex-shrink: 0; animation: pulse 1.5s infinite;
     }
+    .live-banner .banner-text { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; }
     @keyframes pulse {
       0%,100% { opacity: 1; transform: scale(1); }
-      50%      { opacity: 0.5; transform: scale(1.4); }
+      50%      { opacity: 0.5; transform: scale(1.5); }
     }
     body.has-banner nav { top: 40px; }
     body.has-banner #hero { padding-top: 160px; }
+    @media (max-width: 480px) {
+      .live-banner { font-size: 11px; padding: 7px 12px; gap: 6px; }
+      body.has-banner nav { top: 36px; }
+    }
 
     /* ── STORE BADGES ── */
     .store-badges {
@@ -434,8 +440,10 @@
 <!-- LIVE BANNER -->
 <div class="live-banner">
   <span class="pulse"></span>
-  🎉 MedShelf is now LIVE on App Store &amp; Play Store!
-  <a href="#cta">Download Now ↓</a>
+  <span class="banner-text">
+    🎉 MedShelf is now LIVE on App Store &amp; Play Store!
+    <a href="#cta">Download Now ↓</a>
+  </span>
 </div>
 
 <!-- NAV -->
