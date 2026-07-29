@@ -31,7 +31,7 @@ android {
     defaultConfig {
         applicationId = "com.medshelf.medshelf"
         minSdk = flutter.minSdkVersion
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 17
         versionName = "1.2.0"
     }
