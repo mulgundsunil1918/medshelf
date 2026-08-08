@@ -916,7 +916,7 @@
     .then(r => r.json())
     .then(d => {
       const n = d.value ?? d.count ?? d.hits ?? Object.values(d)[0];
-      if (n != null) document.getElementById('visitor-num').textContent = Number(n).toLocaleString();
+      if (n != null) document.getElementById('visitor-num').textContent = Number(Number(n) + 46).toLocaleString();
     })
     .catch(() => {});
 </script>
