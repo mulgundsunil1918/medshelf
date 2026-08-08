@@ -398,9 +398,35 @@
       .steps::before { left: 28px; }
       footer { flex-direction: column; text-align: center; }
     }
+    /* ── BRIDGR BAR ── */
+    .bridgr-bar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 300;
+      background: #0f172a;
+      display: flex; align-items: center; justify-content: center;
+      padding: 10px 16px; gap: 10px;
+      text-decoration: none;
+    }
+    .bridgr-bar:hover { background: #1e293b; }
+    .bridgr-bar .bridgr-label {
+      font-size: 12px; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; color: rgba(255,255,255,0.45);
+    }
+    .bridgr-bar .bridgr-divider {
+      width: 1px; height: 14px; background: rgba(255,255,255,0.2);
+    }
+    .bridgr-bar .bridgr-name {
+      font-size: 17px; font-weight: 900; color: var(--white);
+      letter-spacing: -0.3px;
+    }
+    .bridgr-bar .bridgr-name span { color: var(--coral); }
+    .bridgr-bar .bridgr-arrow {
+      font-size: 13px; color: rgba(255,255,255,0.4);
+      margin-left: 2px;
+    }
+
     /* ── LIVE BANNER ── */
     .live-banner {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      position: fixed; top: 40px; left: 0; right: 0; z-index: 200;
       background: linear-gradient(90deg, #0f766e, #0d9488);
       color: var(--white); text-align: center;
       padding: 9px 16px;
@@ -421,11 +447,15 @@
       0%,100% { opacity: 1; transform: scale(1); }
       50%      { opacity: 0.5; transform: scale(1.5); }
     }
-    body.has-banner nav { top: 40px; }
-    body.has-banner #hero { padding-top: 160px; }
+    body.has-banner nav { top: 80px; }
+    body.has-banner #hero { padding-top: 200px; }
     @media (max-width: 480px) {
-      .live-banner { font-size: 11px; padding: 7px 12px; gap: 6px; }
-      body.has-banner nav { top: 36px; }
+      .bridgr-bar { padding: 8px 12px; }
+      .bridgr-bar .bridgr-name { font-size: 15px; }
+      .bridgr-bar .bridgr-label { font-size: 10px; }
+      .live-banner { font-size: 11px; padding: 7px 12px; gap: 6px; top: 36px; }
+      body.has-banner nav { top: 72px; }
+      body.has-banner #hero { padding-top: 190px; }
     }
 
     /* ── STORE BADGES ── */
@@ -443,6 +473,14 @@
   </style>
 </head>
 <body class="has-banner">
+
+<!-- BRIDGR BAR -->
+<a class="bridgr-bar" href="https://bridgr.co.in/" target="_blank" rel="noopener">
+  <span class="bridgr-label">Part of the</span>
+  <span class="bridgr-divider"></span>
+  <span class="bridgr-name">Bridgr<span> Ecosystem</span></span>
+  <span class="bridgr-arrow">↗</span>
+</a>
 
 <!-- LIVE BANNER -->
 <div class="live-banner">
