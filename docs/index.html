@@ -377,6 +377,28 @@
     .cta-coming { margin-top: 16px; font-size: 13px; color: var(--gray); }
 
     /* ── FOOTER ── */
+    /* ── VISITOR COUNTER ── */
+    #visitors {
+      padding: 64px 24px;
+      background: var(--light);
+      text-align: center;
+    }
+    .visitor-count {
+      font-size: clamp(56px, 10vw, 96px);
+      font-weight: 900;
+      color: var(--teal);
+      line-height: 1;
+      letter-spacing: -2px;
+    }
+    .visitor-label {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--gray);
+      margin-top: 8px;
+    }
+
     footer {
       background: var(--dark); color: rgba(255,255,255,0.5);
       padding: 40px 48px; display: flex; justify-content: space-between; align-items: center;
@@ -882,6 +904,22 @@
     <p class="cta-coming">Free · No subscription · Available on iOS &amp; Android</p>
   </div>
 </section>
+
+<!-- VISITOR COUNTER -->
+<section id="visitors">
+  <div class="visitor-count" id="visitor-num">—</div>
+  <div class="visitor-label">Visitors</div>
+</section>
+
+<script>
+  fetch('https://counterapi.com/api/medshelf-app/visits/up')
+    .then(r => r.json())
+    .then(d => {
+      const n = d.value ?? d.count ?? d.hits ?? Object.values(d)[0];
+      if (n != null) document.getElementById('visitor-num').textContent = Number(n).toLocaleString();
+    })
+    .catch(() => {});
+</script>
 
 <!-- FOOTER -->
 <footer>
